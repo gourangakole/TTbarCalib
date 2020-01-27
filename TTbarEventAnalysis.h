@@ -120,7 +120,7 @@ class TTbarEventAnalysis
   std::vector<std::string> systName;
   std::map<std::string,double> systWeight;
 
-  void TwoTag(std::string tagName, std::string discriminator, std::pair<int, int>, int ptBin);
+  void TwoTag(std::string tagName, std::string discriminator, std::pair<int, int>, int ptBin, Bool_t isData);
   std::map<std::string,std::vector<float>> btaggingWPs;
   void GetBestJetPair(std::pair<int, int>& myIndices, std::string discriminator="deepCSV");
   std::map<std::string,std::pair<int, int>> bestJetPairs;

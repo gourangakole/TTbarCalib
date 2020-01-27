@@ -269,7 +269,7 @@ def main():
         #os.system('hadd -f %s/%s.root %s/%s_*.root' % (opt.outDir,tag,opt.outDir,tag) )
 
     #for tag in runTags:
-    #    os.system('rm %s/%s_*.root' % (opt.outDir,tag) )
+    #   os.system('rm %s/%s_*.root' % (opt.outDir,tag) )
     print 'Analysis results are available in %s' % opt.outDir
 
     #all done here

@@ -181,7 +181,7 @@ void TTbarEventAnalysis::prepareOutput(TString outFile)
   baseHistos["csv"]=new TH1F("csv",";Combined secondary vertex (IVF);Jets",52,-0.02,1.02);
   baseHistos["deepcsv"]=new TH1F("deepcsv",";DeepCSV for B;Jets",52,-0.02,1.02);
 
-  std::vector<unsigned int> myBins={20,30,50,70,100,200,300};
+  std::vector<unsigned int> myBins={20,30,50,70,100,140, 200,300, 600};
   lowerPtBinEdges.insert(lowerPtBinEdges.begin(),myBins.begin(),myBins.end());
 
   twoTagNames.clear();
@@ -558,7 +558,12 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
             systWeight["isrConLo"] = evWgt*ev.ttbar_w[1092]/genWgt*(xsecWgt->GetBinContent(1093)/xsecWgt->GetBinContent(1));
             systWeight["fsrConLo"] = evWgt*ev.ttbar_w[1093]/genWgt*(xsecWgt->GetBinContent(1094)/xsecWgt->GetBinContent(1));
         }
-
+        else {
+            // if the systematic weight not available use the nominal weight for VV samples 
+            for (unsigned int iSyst=0; iSyst< systName.size(); iSyst++){
+                systWeight[systName[iSyst]]=evWgt;
+            }
+        }
         histos_[ch+"_npvinc"]->Fill(ev.nPV-1,evWgt);
         npv_=ev.nPV;
 
@@ -745,6 +750,37 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
             btaggingWPs["deepFlavour"]=deepFlavourWPs;
         }
 
+        mistagWgt.clear();
+        //if(selJets.size()==2){
+        if(!isData){
+            for(std::map<std::string,std::vector<float>>::iterator iMap=btaggingWPs.begin(); iMap!=btaggingWPs.end(); iMap++){  
+                float wgt=1.0;
+                float wgt2;
+                for(unsigned int iWP=0; iWP<wpLabel.size(); iWP++){
+                    Int_t flavour1=abs(ev.Jet_flavour[selJets[bestJetPairs[iMap->first].first]]);
+                    Int_t flavour2=abs(ev.Jet_flavour[selJets[bestJetPairs[iMap->first].second]]);
+                    if((flavour1==21 || (flavour1 >0 && flavour1<4))){ 
+                        wgt =getmistagrates(ReturnVarAtIndex("PT",selJets[bestJetPairs[iMap->first].first]),wpLabel[iWP], iMap->first);}
+                    if((flavour2==21 || (flavour2 >0 && flavour2<4))){ 
+                        wgt *=getmistagrates(ReturnVarAtIndex("PT",selJets[bestJetPairs[iMap->first].second]),wpLabel[iWP], iMap->first);}
+                        // mistagWgt should be of size 6 [L,M,T(deepCSV)    , L, M, T(deepFlvaour)]
+                        mistagWgt.push_back(wgt); 
+                }
+            }   
+        }
+        else{
+            for(std::map<std::string,std::vector<float>>::iterator iMap=btaggingWPs.begin(); iMap!=btaggingWPs.end(); iMap++){ 
+                for(unsigned int iWP=0; iWP<wpLabel.size(); iWP++){
+                    mistagWgt.push_back(1.0); 
+                }
+            }
+        }
+            //std::cout<<"mistagWgt.size() "<<mistagWgt.size()<<std::endl;
+            //for(unsigned int iWP=0; iWP<mistagWgt.size(); iWP++){
+            //    std::cerr<<"mistag_Wgt= "<<mistagWgt.at(iWP)<<std::endl;}
+        //}
+        
+        
         // The key for btaggingWPs is the name of the discriminators whose WPs we want to measure
         // That label is in all the parts (hist name, key of di-jet pair map and discriminator map).
         for(std::map<std::string,std::vector<float>>::iterator iMap=btaggingWPs.begin(); iMap!=btaggingWPs.end(); iMap++){
@@ -1054,7 +1090,7 @@ std::string TTbarEventAnalysis::ReturnPtLabel(int iPT){
 }
 
 // two tag computations and histo filling
-void TTbarEventAnalysis::TwoTag(std::string tagName, std::string discriminator, std::pair<int, int> jetIndices, int ptBin)
+void TTbarEventAnalysis::TwoTag(std::string tagName, std::string discriminator, std::pair<int, int> jetIndices, int ptBin,  Bool_t isData)
 {
     // return before filling if not in this pt bin
     if(ptBin>-1){ //-1 is inclusive--> always keep -1
@@ -1116,17 +1152,38 @@ void TTbarEventAnalysis::TwoTag(std::string tagName, std::string discriminator, 
         binProduct=0;
     }
 
+    float wgt=1.0, wgt1, wgt2;  
+    float mistag_pt1, mistag_pt2;
     std::vector<int> twoTagCrossFlavour(nPassWPs.size(),0);
+    //std::cerr<<" range "<<ReturnPtLabel(ptBin)<<std::endl;
     for(unsigned int iWP=0; iWP<nPassWPs.size(); iWP++){
         twoTagCrossFlavour[iWP]=binProduct + 4*nPassWPs[iWP];
+        if(!isData){
+            mistag_pt1=ReturnVarAtIndex("PT",jetIndices.first);
+            mistag_pt2 =ReturnVarAtIndex("PT",jetIndices.second);
+            if(bin1==1 && bin2 !=1){
+                wgt =getmistagrates(mistag_pt1,wpLabel[iWP], discriminator);
+            }
 
-        histos_[tagName+wpLabel[iWP]+ReturnPtLabel(ptBin)]->Fill(twoTagCrossFlavour[iWP],evWgt);
+            else if(bin2==1 && bin1 !=1){
+                wgt =getmistagrates(mistag_pt2,wpLabel[iWP], discriminator);
+            }
+            else if(bin1==1 && bin2 ==1){
+                wgt1 =getmistagrates(mistag_pt1,wpLabel[iWP], discriminator);
+                wgt2 =getmistagrates(mistag_pt2,wpLabel[iWP], discriminator);
+                wgt =wgt1*wgt2;
+            }
+            else{
+                wgt =1.0;
+            }
+        }
+
+        histos_[tagName+wpLabel[iWP]+ReturnPtLabel(ptBin)]->Fill(twoTagCrossFlavour[iWP],wgt*evWgt);
         for(unsigned int iSyst=0; iSyst<systName.size(); iSyst++){
-            histos_[tagName+wpLabel[iWP]+ReturnPtLabel(ptBin)+"_"+systName[iSyst]]->Fill(twoTagCrossFlavour[iWP],systWeight[systName[iSyst]]);
+            histos_[tagName+wpLabel[iWP]+ReturnPtLabel(ptBin)+"_"+systName[iSyst]]->Fill(twoTagCrossFlavour[iWP],wgt*systWeight[systName[iSyst]]);
         }
     }
 }
-
 
 //Sources
 // CMS AN 022/2015 v15
@@ -1138,6 +1195,40 @@ std::pair<float,float> TTbarEventAnalysis::getTriggerEfficiency(int id1,float pt
   if(ch==-11*11) { res.first=1.0; res.second=0.05; }
   if(ch==-13*13) { res.first=1.0; res.second=0.05; } // this is a single muon trigger
  return res;
+}
+// mistag rates SFs for light jets 
+// getmistagrates will return a vector of {nominal, down, up} for each wp /tagger & jet pt you provide
+float TTbarEventAnalysis:: getmistagrates(float pt, string wp, string tagger)
+{
+    float mistag=1.0;
+    float x = pt; 
+    if(tagger=="deepFlavour"){
+        if (wp=="L"){   // 0 nominal, 1 down , 2 up
+            mistag *=1.61341+-0.000566321*x+1.99464e-07*x*x+-5.09199/x;
+        }
+
+        else if (wp=="M"){
+            mistag *=1.59373+-0.00113028*x+8.66631e-07*x*x+-1.10505/x;
+        }
+                
+        else{
+            mistag *=1.77088+-0.00371551*x+5.86489e-06*x*x+-3.01178e-09*x*x*x;
+        }
+    }
+    if(tagger=="deepCSV"){
+        if (wp=="L"){ 
+            mistag *=1.41852+-0.00040383*x+2.89389e-07*x*x+-3.55101e-11*x*x*x;
+        } 
+            
+        else if (wp=="M"){ 
+            mistag *=1.6329+-0.00160255*x+1.9899e-06*x*x+-6.72613e-10*x*x*x;
+        }
+        
+        else{
+            mistag *=0.870921+5.90958/sqrt(x);
+        }
+    }
+    return mistag;
 }
 
 //https://twiki.cern.ch/twiki/bin/view/CMS/Egamma2017DataRecommendations#Electron_Reconstruction_Scale_Fa
