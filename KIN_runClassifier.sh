@@ -1,9 +1,9 @@
 #!/bin/bash
 
-INPUTFILE="test/combined_TTJets_DL.root"
+INPUTFILE="combined_UL17_v2/combined_ttbar.root"
 
 a=(0 1 2)
 for i in ${a[@]}; do
-    root -b -q "${CMSSW_BASE}/src/TTbarCalib/KIN_trainClassifier.C+(\"BDT\",\"${INPUTFILE}\",${i})";
-    mv TMVA.root TMVA_${i}.root;
+    root -b -q "${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/KIN_trainClassifier.C+(\"BDT\",\"${INPUTFILE}\",${i})";
+    mv TMVA_BDT_UL17_v2.root TMVA_BDT_UL17_v2_${i}.root;
 done

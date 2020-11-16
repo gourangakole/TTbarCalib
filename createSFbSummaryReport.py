@@ -7,7 +7,7 @@ import getpass,socket
 import ROOT
 from Templated_btagEffFitter import SLICEVARTITLES
 
-LUMI=58826.847
+LUMI=41530.00
 SUMMARYCTR=0
 COLORS=[1,ROOT.kAzure+9,ROOT.kGreen-5,ROOT.kOrange-1] #,ROOT.kMagenta+2]
 MARKERS=[20,24,22,25]

@@ -137,10 +137,10 @@ class Plot(object):
             leg.AddEntry( self.data, self.data.GetTitle(),'p')
             nlegCols += 1
 
-        # Loop over hist list and scale to lumi accordingly
+        #Loop over hist list and scale to lumi accordingly
+        print 'scale to lumi: %s' % (lumi)
         for h in self.mc:
             if not noScale:
-                #print 'scale %s to lumi: %s' % (h,lumi)
                 self.mc[h].Scale(lumi)
             leg.AddEntry(self.mc[h], self.mc[h].GetTitle(), 'f')
             nlegCols += 1
@@ -262,11 +262,7 @@ class Plot(object):
             if minVal>thisValue:
                 minVal=thisValue
 
-        print "maxVal,minVal,",maxVal,minVal
-        print "range",max(self.ratiorange[0],minVal*0.95), min(self.ratiorange[1],maxVal*1.05)
-
         ratioframe.GetYaxis().SetRangeUser(max(self.ratiorange[0],minVal*0.95), min(self.ratiorange[1],maxVal*1.05))
-        #ratioframe.GetYaxis().SetRangeUser(self.ratiorange[0], self.ratiorange[1])
         self._garbageList.append(frame)
         ratioframe.GetYaxis().SetNdivisions(6)
         ratioframe.GetYaxis().SetLabelSize(0.18)
@@ -321,6 +317,7 @@ class Plot(object):
             leg2.Draw()
 
         #all done
+        print 'Update canvas . . .'
         c.cd()
         c.Modified()
         c.Update()
@@ -328,6 +325,7 @@ class Plot(object):
         #save
         for ext in self.plotformats : c.SaveAs(os.path.join(outDir, self.name+'.'+ext))
         if self.savelog:
+            print 'saving log . . . '
             p1.cd()
             p1.SetLogy()
             c.cd()
@@ -436,8 +434,7 @@ def main():
     parser.add_option(      '--silent',      dest='silent' ,     help='only dump to ROOT file',         default=False,   action='store_true')
     parser.add_option(      '--saveTeX',     dest='saveTeX' ,    help='save as tex file as well',       default=False,   action='store_true')
     parser.add_option(      '--rebin',       dest='rebin',       help='rebin factor',                   default=1,       type=int)
-    parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=58298.258,    type=float)
-    #parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=52041.789,    type=float)
+    parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=41809.459,    type=float)#2017
     parser.add_option(      '--only',        dest='only',        help='plot only these (csv)',          default='',      type='string')
     parser.add_option(      '--outLabel',    dest='outLabel',    help='appends the plots dir name',     default='',      type='string')
     (opt, args) = parser.parse_args()
@@ -445,6 +442,7 @@ def main():
     #read list of samples
     jsonFile = open(opt.json,'r')
     samplesList=json.load(jsonFile,encoding='utf-8').items()
+    print 'samplesList= \n ', samplesList
     jsonFile.close()
     systSamplesList=None
     if opt.systJson:
@@ -480,6 +478,8 @@ def main():
                     if not keep: continue
                     if "emu" not in key:
                         continue
+                    #if "npv" not in key:
+                    #    continue
                     obj=fIn.Get(key)
                     if not obj.InheritsFrom('TH1') : continue
                     if not key in plots : plots[key]=Plot(key)
@@ -500,6 +500,7 @@ def main():
     for p in plots :
         if opt.saveLog    : plots[p].savelog=True
         if not opt.silent : plots[p].show(outDir=outDir,lumi=opt.lumi,saveTeX=opt.saveTeX)
+        print 'appendto'
         plots[p].appendTo(outDir+'/plotter.root')
         plots[p].reset()
 

@@ -1,32 +1,3 @@
-// @(#)root/tmva $Id$
-/**********************************************************************************
- * Project   : TMVA - a ROOT-integrated toolkit for multivariate data analysis    *
- * Package   : TMVA                                                               *
- * Root Macro: TMVAClassification                                                 *
- *                                                                                *
- * This macro provides examples for the training and testing of the               *
- * TMVA classifiers.                                                              *
- *                                                                                *
- * As input data is used a toy-MC sample consisting of four Gaussian-distributed  *
- * and linearly correlated input variables.                                       *
- *                                                                                *
- * The methods to be used can be switched on and off by means of booleans, or     *
- * via the prompt command, for example:                                           *
- *                                                                                *
- *    root -l ./TMVAClassification.C\(\"Fisher,Likelihood\"\)                     *
- *                                                                                *
- * (note that the backslashes are mandatory)                                      *
- * If no method given, a default set of classifiers is used.                      *
- *                                                                                *
- * The output file "TMVA.root" can be analysed with the use of dedicated          *
- * macros (simply say: root -l <macro.C>), which can be conveniently              *
- * invoked through a GUI that will appear at the end of the run of this macro.    *
- * Launch the GUI via the command:                                                *
- *                                                                                *
- *    root -l ./TMVAGui.C                                                         *
- *                                                                                *
- **********************************************************************************/
-
 #include <cstdlib>
 #include <iostream>
 #include <map>
@@ -58,9 +29,10 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
 {
   gSystem->ExpandPathName(inputFile);
 
-  TString wgtsDir("data/KIN_MVA_new");
+  TString wgtsDir("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/KIN_BDT_UL17_v2");
   gSystem->ExpandPathName(wgtsDir);
   TMVA::gConfig().GetIONames().fWeightFileDir = wgtsDir;
+  cout << "jetRank= " << jetRank << endl;
   if(jetRank==LEAD)         TMVA::gConfig().GetIONames().fWeightFileDir += "/leading/";
   else if(jetRank==SUBLEAD) TMVA::gConfig().GetIONames().fWeightFileDir += "/subleading/";
   else if(jetRank==OTHER)   TMVA::gConfig().GetIONames().fWeightFileDir += "/others/";
@@ -68,91 +40,54 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
   cout << "Output dir set to: " << TMVA::gConfig().GetIONames().fWeightFileDir << endl;
   gSystem->Exec("mkdir -p "+TMVA::gConfig().GetIONames().fWeightFileDir);
 
-  // The explicit loading of the shared libTMVA is done in TMVAlogon.C, defined in .rootrc
-  // if you use your private .rootrc, or run from a different directory, please copy the
-  // corresponding lines from .rootrc
-
-  // methods to be processed can be given as an argument; use format:
-  //
-  // mylinux~> root -l TMVAClassification.C\(\"myMethod1,myMethod2,myMethod3\"\)
-  //
-  // if you like to use a method via the plugin mechanism, we recommend using
-  //
-  // mylinux~> root -l TMVAClassification.C\(\"P_myMethod\"\)
-  // (an example is given for using the BDT as plugin (see below),
-  // but of course the real application is when you write your own
-  // method based)
-
-  //---------------------------------------------------------------
   // This loads the library
   TMVA::Tools::Instance();
 
   // Default MVA methods to be trained + tested
   std::map<std::string,int> Use;
-
-  // --- Cut optimisation
   Use["Cuts"]            = 0;
   Use["CutsD"]           = 0;
   Use["CutsPCA"]         = 0;
   Use["CutsGA"]          = 0;
   Use["CutsSA"]          = 0;
-  //
-  // --- 1-dimensional likelihood ("naive Bayes estimator")
   Use["Likelihood"]      = 0;
   Use["LikelihoodD"]     = 0; // the "D" extension indicates decorrelated input variables (see option strings)
   Use["LikelihoodPCA"]   = 0; // the "PCA" extension indicates PCA-transformed input variables (see option strings)
   Use["LikelihoodKDE"]   = 0;
   Use["LikelihoodMIX"]   = 0;
-  //
-  // --- Mutidimensional likelihood and Nearest-Neighbour methods
   Use["PDERS"]           = 0;
   Use["PDERSD"]          = 0;
   Use["PDERSPCA"]        = 0;
   Use["PDEFoam"]         = 0;
   Use["PDEFoamBoost"]    = 0; // uses generalised MVA method boosting
   Use["KNN"]             = 0; // k-nearest neighbour method
-  //
-  // --- Linear Discriminant Analysis
   Use["LD"]              = 0; // Linear Discriminant identical to Fisher
   Use["Fisher"]          = 0;
   Use["FisherCat"]       = 0;//added by loic
   Use["FisherG"]         = 0;
   Use["BoostedFisher"]   = 0; // uses generalised MVA method boosting
   Use["HMatrix"]         = 0;
-  //
-  // --- Function Discriminant analysis
   Use["FDA_GA"]          = 0; // minimisation of user-defined function using Genetics Algorithm
   Use["FDA_SA"]          = 0;
   Use["FDA_MC"]          = 0;
   Use["FDA_MT"]          = 0;
   Use["FDA_GAMT"]        = 0;
   Use["FDA_MCMT"]        = 0;
-  //
-  // --- Neural Networks (all are feed-forward Multilayer Perceptrons)
   Use["MLP"]             = 0; // Recommended ANN
   Use["MLPBFGS"]         = 0; // Recommended ANN with optional training method
   Use["MLPBNN"]          = 0; // Recommended ANN with BFGS training method and bayesian regulator
   Use["CFMlpANN"]        = 0; // Depreciated ANN from ALEPH
   Use["TMlpANN"]         = 0; // ROOT's own ANN
-  //
-  // --- Support Vector Machine
   Use["SVM"]             = 0;
-  //
-  // --- Boosted Decision Trees
   Use["BDT"]             = 0; // uses Adaptive Boost
   Use["BDTG"]            = 0; // uses Gradient Boost
   Use["BDTB"]            = 0; // uses Bagging
   Use["BDTD"]            = 1; // decorrelation + Adaptive Boost
   Use["BDTF"]            = 0; // allow usage of fisher discriminant for node splitting
-  //
-  // --- Friedman's RuleFit method, ie, an optimised series of cuts ("rules")
   Use["RuleFit"]         = 0;
-  // ---------------------------------------------------------------
-
   std::cout << std::endl;
   std::cout << "==> Start TMVAClassification" << std::endl;
 
-  // Select methods (don't look at this code - not of interest)
   if (myMethodList != "") {
     for (std::map<std::string,int>::iterator it = Use.begin(); it != Use.end(); it++) it->second = 0;
 
@@ -161,65 +96,42 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
       std::string regMethod(mlist[i]);
 
       if (Use.find(regMethod) == Use.end()) {
-	std::cout << "Method \"" << regMethod << "\" not known in TMVA under this name. Choose among the following:" << std::endl;
-	for (std::map<std::string,int>::iterator it = Use.begin(); it != Use.end(); it++) std::cout << it->first << " ";
-	std::cout << std::endl;
-	return;
+        std::cout << "Method \"" << regMethod << "\" not known in TMVA under this name. Choose among the following:" << std::endl;
+        for (std::map<std::string,int>::iterator it = Use.begin(); it != Use.end(); it++) std::cout << it->first << " ";
+        std::cout << std::endl;
+        return;
       }
       Use[regMethod] = 1;
     }
   }
 
-  // --------------------------------------------------------------------------------------------------
-
-  // --- Here the preparation phase begins
-
   // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
-  //TString outfileName( "TMVA_MVA4000.root" );
-  TString outfileName( "TMVA_MVA_2019-05-31.root" );
+  TString outfileName( "TMVA_BDT_UL17_v2.root" );
   TFile* outputFile = TFile::Open( outfileName, "RECREATE" );
-
-  // Create the factory object. Later you can choose the methods
-  // whose performance you'd like to investigate. The factory is
-  // the only TMVA object you have to interact with
-  //
-  // The first argument is the base of the name of all the
-  // weightfiles in the directory weight/
-  //
-  // The second argument is the output file for the training results
-  // All TMVA output can be suppressed by removing the "!" (not) in
-  // front of the "Silent" argument in the option string
+  cout << "Create Factory" << endl;
   TMVA::Factory *factory = new TMVA::Factory("TMVAClassification", outputFile, "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification");
+  cout << "Create DataLoader" << endl;
   TMVA::DataLoader *dataloader=new TMVA::DataLoader("");
-
-  // You can add so-called "Spectator variables", which are not used in the MVA training,
-  // but will appear in the final "TestTree" produced by TMVA. This TestTree will contain the
-  // input variables, the response values of all trained MVAs, and the spectator variables
-  //   factory->AddSpectator( "spec1 := var1*2",  "Spectator 1", "units", 'F' );
-  // factory->AddSpectator( "spec2 := var1*3",  "Spectator 2", "units", 'F' );
-
-  // Read training and test data
-  // (it is also possible to use ASCII format as input -> see TMVA Users Guide)
-  //   TString fname = "./tmva_class_example.root";
-
-  //if (gSystem->AccessPathName( fname ))  // file does not exist in local directory
-  //   gSystem->Exec("wget http://root.cern.ch/files/tmva_class_example.root");
-  // --- Register the training and test trees
+  // You can add so-called "Spectator variables", which are not used in the MVA training
+  // factory->AddSpectator( "spec1 := var1*2",  "Spectator 1", "units", 'F' );
+  cout << "Open input files" << endl;
   TFile *inF=TFile::Open(inputFile);
-
   TTree *t=(TTree *)inF->Get("kin");
-
   cout << "Number of events to train on: " << t->GetEntries() << endl;
-
   outputFile->cd();
 
   //b-jets are saved as 5, require that the event passes nominal preselection (weight[0]>0)
   TString jetRankCut("");
-  if(jetRank!=OTHER)      { jetRankCut += "&& jetrank=="; jetRankCut += jetRank; }
-  else if(jetRank==OTHER) { jetRankCut += "&& jetrank>="; jetRankCut += jetRank; }
+  if(jetRank!=OTHER)      {
+    jetRankCut += "&& jetrank=="; jetRankCut += jetRank;
+  }
+  else if(jetRank==OTHER) {
+    jetRankCut += "&& jetrank>="; jetRankCut += jetRank;
+  }
   TCut sigCut("abs(flavour)==5 && weight[0]>0 && abs(ttbar_chan)<230000" + jetRankCut);
   TCut bkgCut("abs(flavour)!=5 && weight[0]>0 && abs(ttbar_chan)<230000" + jetRankCut);
   dataloader->SetInputTrees(t,sigCut,bkgCut);
+  dataloader->GetDataSetInfo();
 
   //use common weight in the events
   dataloader->SetSignalWeightExpression("weight[0]");
@@ -245,8 +157,6 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
   TCut mycuts = "";
   TCut mycutb = "";
   std::stringstream SplitOptionString;
-  //SplitOptionString <<"nTrain_Signal="<<5000<<":nTrain_Background="<<5000<<":nTest_Signal="<<5000<<":nTest_Background="<<5000<<":SplitMode=Random:NormMode=NumEvents:!V";
-  //SplitOptionString <<"nTrain_Signal="<<4000<<":nTrain_Background="<<4000<<":nTest_Signal="<<4000<<":nTest_Background="<<4000<<":SplitMode=Random:NormMode=NumEvents:!V";
   SplitOptionString <<":SplitMode=Random:NormMode=NumEvents:!V";
   cout << SplitOptionString.str() << endl;
   dataloader->PrepareTrainingAndTestTree( mycuts, mycutb, SplitOptionString.str() );
@@ -430,13 +340,11 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
     factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDTG",
 			 "!H:!V:NTrees=1000:MinNodeSize=1.5%:BoostType=Grad:Shrinkage=0.10:UseBaggedGrad:GradBaggingFraction=0.5:nCuts=20:MaxDepth=2" );
      }
-  if (Use["BDT"])  // Adaptive Boost
-    {
-      //      TString Default ="!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex:nCuts=20";
-      factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDT",
-			   "NTrees=1000:BoostType=Grad:MinNodeSize=5%:MaxDepth=3:Shrinkage=1.0:NegWeightTreatment=Pray");
-      //"!H:!V:NTrees=450:MinNodeSize=5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.15:SeparationType=MisClassificationError:nCuts=25:PruneMethod=NoPruning");
-    }
+
+  if (Use["BDT"]){
+    cout << "Booking BDT" << endl;
+    factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDT","NTrees=1000:BoostType=Grad:MinNodeSize=5%:MaxDepth=3:Shrinkage=1.0:NegWeightTreatment=Pray");
+  }
 
 
   if (Use["BDTB"]){ // Bagging
@@ -460,34 +368,16 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
 			 "H:!V:RuleFitModule=RFTMVA:Model=ModRuleLinear:MinImp=0.001:RuleMinDist=0.001:NTrees=20:fEventsMin=0.01:fEventsMax=0.5:GDTau=-1.0:GDTauPrec=0.01:GDStep=0.01:GDNSteps=10000:GDErrScale=1.02" );
      }
 
-  // For an example of the category classifier usage, see: TMVAClassificationCategory
-
-
-
-
-  // --------------------------------------------------------------------------------------------------
-
   // ---- Now you can optimize the setting (configuration) of the MVAs using the set of training events
-
   // factory->OptimizeAllMethods("SigEffAt001","Scan");
   // factory->OptimizeAllMethods("ROCIntegral","FitGA");
 
-  // --------------------------------------------------------------------------------------------------
-
-  // ---- Now you can tell the factory to train, test, and evaluate the MVAs
-
-  // Train MVAs using the set of training events
   cout << "Training . . . . " << endl;
   factory->TrainAllMethods();
-
   cout << "Testing . . . . " << endl;
-  // ---- Evaluate all MVAs using the set of test events
   factory->TestAllMethods();
-
-  // ----- Evaluate and compare performance of all configured MVAs
+  cout << "Evaluating . . . . " << endl;
   factory->EvaluateAllMethods();
-
-  // --------------------------------------------------------------
 
   // Save the output
   outputFile->Close();
@@ -497,9 +387,6 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
   std::cout << " ==> Weights are stored in " << TMVA::gConfig().GetIONames().fWeightFileDir << std::endl;
   delete factory;
   delete dataloader;
-
-
-
-  // Launch the GUI for the root macros
-  //   if (!gROOT->IsBatch()) TMVAGui( outfileName );
+  cout << "deleted factory and dataloader" << endl;
+  return;
 }

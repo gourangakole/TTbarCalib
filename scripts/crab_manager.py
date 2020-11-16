@@ -88,7 +88,7 @@ def main(argv):
 
     for files in os.listdir(directory_name):
         print 'Job dir: ', directory_name
-        if 'crab_DM_Codex' in files:
+        if 'crab_' in files:
             print 'crab working dir = ', files
             if crab_mode == 'status':
                 print 'Checking status of crab jobs in directory.'

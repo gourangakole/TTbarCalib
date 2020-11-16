@@ -3,36 +3,38 @@ numbins=7 #ptrange-1 entries
 ini=0
 fin=$numbins
 ptrange=(30 50 70 100 140 200 300 600)
-# Open the produced .csv file (e.g. kin_calib.csv) which should be located inside the discriminant directory (e.g. DeepCSVBDisc_fits) in the fit directory.
+# Open the produced .csv file (e.g. kin_calib.csv) which should
+# be located inside the discriminant directory (e.g. DeepCSVBDisc_fits) in the fit directory.
 # Remove quotation marks from around SF values (last column).
-#Type :
-#$>cat kin_calib.csv | grep central | awk '{printf "%.12f\n", $11}' and copy the output in sfval
-#Replace the quotation marks in .csv and save.
+# Type :
+# $>cat kin_calib.csv | grep central | awk '{printf "%.12f\n", $11}' and copy the output to sfval=() beneath.
+# Replace the quotation marks in .csv and save.
 sfval=(
-0.956522166729
-0.955152809620
-0.964328587055
-0.961133480072
-0.955408751965
-0.939192593098
-0.878094434738
-0.952563345432
-0.938796758652
-0.944189071655
-0.944512963295
-0.935053765774
-0.914072155952
-0.850596964359
-0.942229092121
-0.924089431763
-0.931741058826
-0.928359806538
-0.917947828770
-0.891818225384
-0.802140533924
+0.923572182655
+0.952017188072
+0.960410237312
+0.965736329556
+0.963762938976
+0.948510646820
+0.877512574196
+0.911242723465
+0.938073456287
+0.944184720516
+0.947327673435
+0.947567045689
+0.943790435791
+0.893679976463
+0.893445551395
+0.914260625839
+0.929737508297
+0.934173583984
+0.937386751175
+0.932872533798
+0.878432035446
 )
-#Remember to change "closure" to "mistag" and "pu" to "pileup" in sfb_report.tex
-syst=("jer qcdscale sel trig jes mistag pileup isrDef fsrDef")
+# Remember to change "closure" to "mistag" and "pu" to "pileup" in sfb_report.tex
+#syst=("jer qcdscale sel trig jes mistag pileup isrDef fsrDef")
+syst=("jes jer trig sel qcdscale pileup isrDef fsrDef mistag")
 # Execute this script ./prepare_csv.sh > CSVv2_Kin.csv and follow next 3 steps:
 #1. Open kin_calib.csv. All replace all 'up_statistic' with 'up' and all 'up_total' with 'up_statistic'. Do the same for down.
 #2. Change statistics -> statistic 0,$s/statistics/statistic/g

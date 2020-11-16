@@ -20,8 +20,8 @@ SLICEVARTITLES={
     #'npv':'Primary vertex multiplicity'
 }
 SLICEVAR   = 'jetpt'
-#SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
-SYSTVARS   = ['']
+SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
+#SYSTVARS   = ['']
 """
 Project trees from files to build the templates
 """
@@ -72,6 +72,8 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir):
     #print files
     chains={'mc':ROOT.TChain('kin'),'data':ROOT.TChain('kin')}
     for f in files:
+        if 'training' in f:
+            continue
         print 'file: ' , f
         key = 'mc' if 'MC' in f else 'data'
         chains[key].Add(inDir+'/'+f)
@@ -95,10 +97,10 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir):
 
             # Restrict jet multiplicity (one entry in kin tree)
             njets=chains[key].jetmult
-            print 'Entry: %s , njets: %s ' % (i, njets)
+            #print 'Entry: %s , njets: %s ' % (i, njets)
 
             if njets<2 or njets>4 : continue
-
+            #print 'SYSTVARS: ', SYSTVARS
             for systVar in SYSTVARS:
 
                 if key=='data' and len(systVar)>0 : continue
@@ -139,23 +141,23 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir):
 
                 # Variable to slice on
                 sliceVarVal  = getattr(chains[key],SLICEVAR)
-                #variable to be fit
+                # variable to be fit
                 varVal[0]    = getattr(chains[key],var)      if var=='jpTagger'   else getattr(chains[key],var)[systIdx]
 
-                print 'var: %s , tagger: %s' % (var,tagger)
+                #print 'var: %s , tagger: %s' % (var,tagger)
 
                 # Tagger to apply
                 taggerVal[0] = getattr(chains[key],tagger)
 
                 #determine categories
-                print 'sliceVarVal: ', sliceVarVal
+                #print 'sliceVarVal: ', sliceVarVal
                 for islice in xrange(0,len(SLICEBINS[SLICEVAR])):
                     passSlice[islice]=0
                     if sliceVarVal<=SLICEBINS[SLICEVAR][islice][0] or sliceVarVal>SLICEBINS[SLICEVAR][islice][1] : continue
-                    print 'passed %s < jet pt < %s' % (SLICEBINS[SLICEVAR][islice][0], SLICEBINS[SLICEVAR][islice][1])
+                    #print 'passed %s < jet pt < %s' % (SLICEBINS[SLICEVAR][islice][0], SLICEBINS[SLICEVAR][islice][1])
                     passSlice[islice]=1
 
-                print 'passSlice: ', passSlice
+                #print 'passSlice: ', passSlice
                 #assign flavour
                 flav='other'
                 if abs(chains[key].flavour)==5: flav='b'
@@ -167,22 +169,22 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir):
                 normVarValJetBins = normVarVal+ (varRange[1]-varRange[0])*(njets-2)
                 for islice in xrange(0,len(passSlice)):
                     if passSlice[islice]==0 : continue
-                    print 'njets = ', njets
+                    #print 'njets = ', njets
                     if njets==2:
                         hkey='%s_slice%d_%s'%(flav,islice,systVar)
-                        print 'Filling njets==2 %s with normVarVal %s ' % (hkey,normVarVal)
+                        #print 'Filling njets==2 %s with normVarVal %s ' % (hkey,normVarVal)
                         histos[hkey].Fill(normVarVal,weight)
 
                     hkey='%s_pass0_slice%d%s'%(flav,islice,systVar)
-                    print 'Filling %s with normVarVal %s ' % (hkey,normVarVal)
+                    #print 'Filling %s with normVarVal %s ' % (hkey,normVarVal)
                     histos[hkey].Fill(normVarVal,weight)
 
                     # Check to see if jet passed/failed the btag cut and fill appropriate histogram.
                     for iop in xrange(2,len(taggerDef)-1):
                         status='fail' if taggerVal[0] < taggerDef[iop] else 'pass'
                         hkey='%s_%s%d_slice%d%s'%(flav,status,iop-1,islice,systVar)
-                        print 'Check if jet passed/failed btag cut: taggerVal[0] = %s , taggerDef[iop] = %s' % (taggerVal[0], taggerDef[iop])
-                        print 'Filling %s with normVarValJetBins %s ' % (hkey,normVarValJetBins)
+                        #print 'Check if jet passed/failed btag cut: taggerVal[0] = %s , taggerDef[iop] = %s' % (taggerVal[0], taggerDef[iop])
+                        #print 'Filling %s with normVarValJetBins %s ' % (hkey,normVarValJetBins)
                         histos[hkey].Fill(normVarValJetBins,weight)
 
                 #fill histo for data
@@ -380,7 +382,7 @@ def main():
     parser.add_option('-s', '--sliceVar',           dest='sliceVar',           help='slicing variable',             default='jetpt',   type='string')
     parser.add_option(      '--recycleTemplates',   dest='recycleTemplates',   help='recycleTemplates',             default=False,       action='store_true')
     parser.add_option('-n', '--njobs',              dest='njobs',              help='# jobs to run in parallel',    default=0,           type='int')
-    parser.add_option('-l', '--lumi',               dest='lumi',               help='integrated luminosity',        default=58826.847,        type='float')
+    parser.add_option('-l', '--lumi',               dest='lumi',               help='integrated luminosity',        default=41809.459,        type='float')
     parser.add_option('-o', '--outDir',             dest='outDir',             help='output directory',             default='analysis',  type='string')
     parser.add_option(      '--channels',           dest='channels',           help='channels to use',              default='-121,-143,-169',  type='string')#-121=ee,-143=emu,-169=mumu
     (opt, args) = parser.parse_args()

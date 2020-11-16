@@ -26,10 +26,9 @@ os.popen('export XRD_NETWORKSTACK=IPv4')
 
 # Original directory name on EOS and subsequent directories
 # for individual samples.
-#original_directory = '/store/group/phys_btag/Commissioning/TTbar/Moriond2018-02-20_ttbar/'
 #original_directory = '/store/group/phys_btag/Commissioning/ZJets/KINMistag-2018-06-09/'
-#original_directory = '/store/group/phys_btag/Commissioning/TTbar/Moriond19_Run2018/'
-original_directory = '/store/group/phys_btag/Commissioning/TTbar/Moriond19_Run2018_DeepFlavourPruned/'
+#original_directory = '/store/group/phys_btag/Commissioning/TTbar/Moriond19_Run2018_DeepFlavourPruned/'
+original_directory = '/store/group/phys_btag/Commissioning/TTbar/TTbar_UL17/'
 original_subdir_list = [
 'MuonEG'
 #'DoubleEG'
@@ -37,10 +36,9 @@ original_subdir_list = [
 ]
 
 # EOS directory with new structure to store output (easier for runTTbarAnalysis packages to use).
-#new_directory = '/eos/cms/store/group/phys_btag/Commissioning/TTbar/KinMethod_StructuredDir_Moriond2018-02-20_ttbar/'
 #new_directory = '/eos/cms/store/group/phys_btag/Commissioning/ZJets/KINMistag-2018-06-09_StructuredDir/'
 #new_directory = '/eos/cms/store/group/phys_btag/Commissioning/TTbar/Moriond19_2018_StructuredDir/'
-new_directory = '/eos/cms/store/group/phys_btag/Commissioning/TTbar/Moriond19_2018_DeepFlavourPruned_StructuredDir/'
+new_directory = '/eos/cms/store/group/phys_btag/Commissioning/TTbar/TTbar_UL17_StructuredDir/'
 # Make the new EOS directory.
 eos_mkdir_cmd = 'eos mkdir '
 temp_eos_mkdir_cmd = eos_mkdir_cmd + new_directory
@@ -63,10 +61,11 @@ data_dir = temp_os_output.splitlines()
 # Can add or remove data directories from this list.
 
 data_dir = [
-'crab_Data13TeV_MuonEG_Run2018B',
-'crab_Data13TeV_MuonEG_Run2018A',
-'crab_Data13TeV_MuonEG_Run2018C',
-'crab_Data13TeV_MuonEG_Run2018D'
+'crab_crab_Data13TeV_MuonEG_Run2018B',
+'crab_crab_Data13TeV_MuonEG_Run2018C',
+'crab_crab_Data13TeV_MuonEG_Run2018D',
+'crab_crab_Data13TeV_MuonEG_Run2018E',
+'crab_crab_Data13TeV_MuonEG_Run2018F'
 ]
 
 # Loop over crab job output directories for data inside MuonEG directory.
