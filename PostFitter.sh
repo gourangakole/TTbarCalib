@@ -1,16 +1,17 @@
 #!/bin/bash
 # Discriminant for scale factors:
-tagger=DeepCSVBDisc #DeepFlavourBDisc #DeepCSVBDisc
+tagger=DeepFlavourBDisc #DeepFlavourBDisc #DeepCSVBDisc
 # Fit directory
-folders=(UltraLegacy_fit_dir)
-#UltraLegacy_fit_dir
-#UltraLegacy_fit_dir_TuneCP5down
-#UltraLegacy_fit_dir_TuneCP5up
-#UltraLegacy_fit_dir_hdampDOWN
-#UltraLegacy_fit_dir_hdampUP
-#UltraLegacy_fit_dir_mtop171p5
-#UltraLegacy_fit_dir_mtop173p5
-#UltraLegacy_fit_dir_nonTTXSecDown
+folders=(fit_dir_UL17_XSUp)
+#fit_dir_UL17_v3
+#fit_dir_UL17_TuneCP5down/
+#fit_dir_UL17_TuneCP5up/
+#fit_dir_UL17_hdampDOWN/
+#fit_dir_UL17_hdampUP/
+#fit_dir_UL17_mtop171p5/
+#fit_dir_UL17_mtop173p5/
+#fit_dir_UL17_XSDown
+#fit_dir_UL17_XSUp
 
 # Loop over chosen folders above.
 for f in ${folders[@]}; do

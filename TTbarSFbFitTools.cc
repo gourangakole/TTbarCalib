@@ -300,23 +300,6 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
         float m            = (jetptbins[jetptRange+1]+jetptbins[jetptRange])/2;
         //Mistag rates and uncertainties from negative tag method (contact analyst for .csv files)
         float mistagrate = 1;
-        if(tagger=="csv"){
-          if(workingPoint==1){
-            if(NomSysupSysdown==0) mistagrate = 1.13904+-0.000594946*m+1.97303e-06*m*m+-1.38194e-09*m*m*m;
-            if(NomSysupSysdown==1) mistagrate = (1.13904+-0.000594946*m+1.97303e-06*m*m+-1.38194e-09*m*m*m)*(1+(0.069661+7.95562e-05*m+-5.19951e-08*m*m));
-            if(NomSysupSysdown==2) mistagrate = (1.13904+-0.000594946*m+1.97303e-06*m*m+-1.38194e-09*m*m*m)*(1-(0.069661+7.95562e-05*m+-5.19951e-08*m*m));
-          }
-          if(workingPoint==2){
-            if(NomSysupSysdown==0) mistagrate = 1.0589+0.000382569*m+-2.4252e-07*m*m+2.20966e-10*m*m*m;
-            if(NomSysupSysdown==1) mistagrate = (1.0589+0.000382569*m+-2.4252e-07*m*m+2.20966e-10*m*m*m)*(1+(0.104457+0.000312077*m+-1.68976e-07*m*m));
-            if(NomSysupSysdown==2) mistagrate = (1.0589+0.000382569*m+-2.4252e-07*m*m+2.20966e-10*m*m*m)*(1-(0.104457+0.000312077*m+-1.68976e-07*m*m));
-          }
-          if(workingPoint==3){
-            if(NomSysupSysdown==0) mistagrate = 0.971945+163.215/(m*m)+0.000517836*m;
-            if(NomSysupSysdown==1) mistagrate = (0.971945+163.215/(m*m)+0.000517836*m)*(1+(0.310175+-0.000261463*m+5.62615e-07*m*m));
-            if(NomSysupSysdown==2) mistagrate = (0.971945+163.215/(m*m)+0.000517836*m)*(1-(0.310175+-0.000261463*m+5.62615e-07*m*m));
-          }
-        }
         if(tagger=="DeepCSVBDisc"){
           if(workingPoint==1){
             if(NomSysupSysdown==0) mistagrate = 1.41852+-0.00040383*m+2.89389e-07*m*m+-3.55101e-11*m*m*m;
@@ -494,7 +477,7 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
                 TString jpt_label = i==0 ? "tagged jets " : "vetoed jets ";
                 jpt_label += jetptRange_labels[jetptRange];
 
-                label->DrawLatex(0.54,0.94, Form("#scale[0.95]{%3.f fb^{-1} (13 TeV, 2018)}",lumi));
+                label->DrawLatex(0.54,0.94, Form("#scale[0.95]{%3.f fb^{-1} (13 TeV)}",lumi));
                 label->DrawLatex(0.18,0.94, "#bf{CMS}");
                 label->DrawLatex(0.54,0.90, tagger_label);
                 label->DrawLatex(0.54,0.86, wp_lable);
@@ -549,7 +532,6 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
                 label2->SetNDC();
                 label2->SetTextFont(42);
                 label2->SetTextSize(0.04);
-                //label2->DrawLatex(0.6,0.1,i==0 ? Form("#scale[17.5]{%3.f fb^{-1} (13 TeV, 2018)}",lumi) : Form("#scale[17.5]{%3.f fb^{-1} (13 TeV, 2018)}",lumi));
               }
 
               canvas->Modified();

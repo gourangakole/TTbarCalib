@@ -29,7 +29,7 @@ class TTbarFracFitter
                               Int_t jetptRange=0,
                               Int_t NomSysupSysdown=0,
                               TString saveResultIn="",
-                              Float_t lumi=52.0);
+                              Float_t lumi=41.8);
   ~TTbarFracFitter();
 
 };

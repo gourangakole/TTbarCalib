@@ -1,6 +1,6 @@
 {
-"Data13TeV_MuonEG_Run2018A"         : [1.0, 1, "/MuonEG/Run2018A-17Sep2018-v1/MINIAOD", "Data", 1, false, false, 1],
-"Data13TeV_MuonEG_Run2018B"         : [1.0, 1, "/MuonEG/Run2018B-17Sep2018-v1/MINIAOD", "Data", 1, false, false, 1],
-"Data13TeV_MuonEG_Run2018C"         : [1.0, 1, "/MuonEG/Run2018C-17Sep2018-v1/MINIAOD", "Data", 1, false, false, 1],
-"Data13TeV_MuonEG_Run2018D"         : [1.0, 1, "/MuonEG/Run2018D-PromptReco-v2/MINIAOD", "Data", 1, false, false, 1]
+"crab_Data13TeV_MuonEG_Run2018A"         : [1.0, 1, "/MuonEG/Run2018A-17Sep2018-v1/MINIAOD", "Data", 1, false, false, 1],
+"crab_Data13TeV_MuonEG_Run2018B"         : [1.0, 1, "/MuonEG/Run2018B-17Sep2018-v1/MINIAOD", "Data", 1, false, false, 1],
+"crab_Data13TeV_MuonEG_Run2018C"         : [1.0, 1, "/MuonEG/Run2018C-17Sep2018-v1/MINIAOD", "Data", 1, false, false, 1],
+"crab_Data13TeV_MuonEG_Run2018D"         : [1.0, 1, "/MuonEG/Run2018D-PromptReco-v2/MINIAOD", "Data", 1, false, false, 1]
 }

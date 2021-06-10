@@ -12,5 +12,9 @@
 "MC13TeV_ZZ" : [12.14,  0, "/ZZ_TuneCP5_13TeV-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM", "ZZ",          4, false, false, 1],
 "MC13TeV_W2JetsToLNu" : [2793.0, 0, "/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM", "other", 4],
 "MC13TeV_W3JetsToLNu" : [992.5, 0, "/W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM", "other", 4],
-"MC13TeV_W4JetsToLNu" : [544.3, 0, "/W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM", "other", 4]
+"MC13TeV_W4JetsToLNu" : [544.3, 0, "/W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM", "other", 4],
+"crab_Data13TeV_MuonEG_Run2018A"         : [1.0, 1, "/MuonEG/Run2018A-17Sep2018-v1/MINIAOD", "Data", 1, false, false, 1],
+"crab_Data13TeV_MuonEG_Run2018B"         : [1.0, 1, "/MuonEG/Run2018B-17Sep2018-v1/MINIAOD", "Data", 1, false, false, 1],
+"crab_Data13TeV_MuonEG_Run2018C"         : [1.0, 1, "/MuonEG/Run2018C-17Sep2018-v1/MINIAOD", "Data", 1, false, false, 1],
+"crab_Data13TeV_MuonEG_Run2018D"         : [1.0, 1, "/MuonEG/Run2018D-PromptReco-v2/MINIAOD", "Data", 1, false, false, 1]
 }
