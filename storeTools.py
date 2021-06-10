@@ -64,7 +64,9 @@ def produceNormalizationCache(samplesList,inDir,cache,xsecWgts,integLumi):
             # Loop over nominal and all systematic variation weights stored in files histograms
             print "TAG: ", tag
             print "json xsec = %s, LHE Evenweights histogram bin1 (nominal sum of weights) = %s, Nominal JSONXS/sum(LHEWeight) = %s" % (xsec, norigEvents.GetBinContent(1), xsec/norigEvents.GetBinContent(1))
+            print "number of LHE weights: " , norigEvents.GetNbinsX()+1
             for xbin in xrange(1,norigEvents.GetNbinsX()+1):
+                #print "xbin: %s , xsec/norigEvents.GetBinContent(xbin): %s" % (xbin,xsec/norigEvents.GetBinContent(xbin))
                 norigEvents.SetBinContent(xbin,xsec/norigEvents.GetBinContent(xbin))
                 norigEvents.SetBinError(xbin,0.)
         except:
@@ -72,7 +74,11 @@ def produceNormalizationCache(samplesList,inDir,cache,xsecWgts,integLumi):
         xsecWgts[tag]  = norigEvents
         integLumi[tag] = 1./norigEvents.GetBinContent(1) if norigEvents else 0.
         if norigEvents:
-            print '... %s JSON XS = %f pb,  sum(LHENomWeight) * JSONXS / JSONXS = %3.0f,  # events =%3.2f' % (tag,xsec, (norigEvents.GetBinContent(1)),integLumi[tag]/1000.)
+            print "underflow = ", norigEvents.GetBinContent(0)
+            print "norigEvents.GetBinContent(1) = ", norigEvents.GetBinContent(1)
+            print "norigEvents.GetBinContent(2) = ", norigEvents.GetBinContent(2)
+            print "norigEvents.GetBinContent(3) = ", norigEvents.GetBinContent(3)
+            print '... %s JSON XS = %f pb,  Nominal JSONXS/sum(LHEWeight) = %f,  # events =%3.2f' % (tag, xsec, xsecWgts[tag].GetBinContent(1), integLumi[tag]/1000.)
 
     #dump to file
     cachefile=open(cache,'w')

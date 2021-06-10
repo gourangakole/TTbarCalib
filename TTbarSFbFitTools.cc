@@ -1,15 +1,12 @@
 #include "TTbarSFbFitTools.h"
-
 #include <iostream>
 #include <map>
 #include <string>
-
 #include "TMath.h"
 #include "TCanvas.h"
 #include "TLatex.h"
 #include "TLegend.h"
 #include "TLine.h"
-
 #include "RooHist.h"
 #include "RooRealVar.h"
 #include "RooDataHist.h"
@@ -195,7 +192,9 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
         p2->SetTopMargin(0.05);
         p2->Draw();
         p2->cd();
-
+        // The following line needs to be fixed to account for the correlation
+        // between data and the fitted prediction. Currently the error to which
+        // the residual histogram is normalised to is just the error on the data hist.
         RooHist *hpull = frame->pullHist();
         RooPlot *pullFrame = x.frame();
         //hpull->plotOn(pullFrame);
@@ -298,8 +297,69 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
         //(30,50),(50,70),(70,100),(100,140),(140,200),(200,300),(300,600)
         float jetptbins[8] = {30,50,70,100,140,200,300,600};
         float m            = (jetptbins[jetptRange+1]+jetptbins[jetptRange])/2;
+
         //Mistag rates and uncertainties from negative tag method (contact analyst for .csv files)
+        BTagCalibration calib_deepCSV("deepcsv", "data/DeepCSV_2018.out");
+        BTagCalibration calib_deepJet("deepjet", "data/DeepFlavour_2018.out");
+
+        BTagCalibrationReader DeepCSV_mistag_reader_loose(BTagEntry::OP_LOOSE,// operating point
+                             "central",                               // central sys type
+                             {"up", "down"});                         // other sys
+
+        BTagCalibrationReader DeepCSV_mistag_reader_medium(BTagEntry::OP_MEDIUM,"central",{"up", "down"});
+        BTagCalibrationReader DeepCSV_mistag_reader_tight(BTagEntry::OP_TIGHT,"central",{"up", "down"});
+
+        BTagCalibrationReader DeepJet_mistag_reader_loose(BTagEntry::OP_LOOSE,"central",{"up", "down"});
+        BTagCalibrationReader DeepJet_mistag_reader_medium(BTagEntry::OP_MEDIUM,"central",{"up", "down"});
+        BTagCalibrationReader DeepJet_mistag_reader_tight(BTagEntry::OP_TIGHT,"central",{"up", "down"});
+
+        DeepCSV_mistag_reader_loose.load(calib_deepCSV,BTagEntry::FLAV_UDSG,"incl");
+        DeepCSV_mistag_reader_medium.load(calib_deepCSV,BTagEntry::FLAV_UDSG,"incl");
+        DeepCSV_mistag_reader_tight.load(calib_deepCSV,BTagEntry::FLAV_UDSG,"incl");
+
+        DeepJet_mistag_reader_loose.load(calib_deepJet,BTagEntry::FLAV_UDSG,"incl");
+        DeepJet_mistag_reader_medium.load(calib_deepJet,BTagEntry::FLAV_UDSG,"incl");
+        DeepJet_mistag_reader_tight.load(calib_deepJet,BTagEntry::FLAV_UDSG,"incl");
+
         float mistagrate = 1;
+        if(tagger=="DeepCSVBDisc"){
+          if(workingPoint==1){
+            if(NomSysupSysdown==0) mistagrate = DeepCSV_mistag_reader_loose.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==1) mistagrate = DeepCSV_mistag_reader_loose.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==2) mistagrate = DeepCSV_mistag_reader_loose.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+          }
+          if(workingPoint==2){
+            if(NomSysupSysdown==0) mistagrate = DeepCSV_mistag_reader_medium.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==1) mistagrate = DeepCSV_mistag_reader_medium.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==2) mistagrate = DeepCSV_mistag_reader_medium.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+          }
+          if(workingPoint==3){
+            if(NomSysupSysdown==0) mistagrate = DeepCSV_mistag_reader_tight.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==1) mistagrate = DeepCSV_mistag_reader_tight.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==2) mistagrate = DeepCSV_mistag_reader_tight.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+          }
+        }
+        if(tagger=="DeepFlavourBDisc"){
+          if(workingPoint==1){
+            if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_loose.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_loose.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_loose.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+          }
+          if(workingPoint==2){
+            if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_medium.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_medium.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_medium.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+          }
+          if(workingPoint==3){
+            if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+          }
+        }
+
+        //cout << "Reader: " << tagger << " variation " << NomSysupSysdown << " working point " << workingPoint << " mistagsf = " << mistagrate << endl;
+
+        /*mistagrate = 1;
         if(tagger=="DeepCSVBDisc"){
           if(workingPoint==1){
             if(NomSysupSysdown==0) mistagrate = 1.41852+-0.00040383*m+2.89389e-07*m*m+-3.55101e-11*m*m*m;
@@ -334,6 +394,7 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
             if(NomSysupSysdown==2) mistagrate = (1.77088+-0.00371551*m+5.86489e-06*m*m+-3.01178e-09*m*m*m)*(1+(0.223324+0.000231341*m+-2.34362e-07*m*m));
           }
         }
+        cout << "Hard-coded: " << tagger << " variation " << NomSysupSysdown << " working point " << workingPoint << " mistagsf = " << mistagrate << endl;*/
 
         RooArgSet passPDFs,passCounts,passNonPOIPDFs,failPDFs,failCounts,sfVars,failNonPOIPDFs;
         for(int i=0; i<passTemplates.GetEntriesFast(); i++)
@@ -476,8 +537,7 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
                 TString wp_lable = workingPoint_labels[workingPoint];
                 TString jpt_label = i==0 ? "tagged jets " : "vetoed jets ";
                 jpt_label += jetptRange_labels[jetptRange];
-
-                label->DrawLatex(0.54,0.94, Form("#scale[0.95]{%3.f fb^{-1} (13 TeV)}",lumi));
+                label->DrawLatex(0.54,0.94, Form("#scale[0.95]{%.2f fb^{-1} (13 TeV)}",lumi));
                 label->DrawLatex(0.18,0.94, "#bf{CMS}");
                 label->DrawLatex(0.54,0.90, tagger_label);
                 label->DrawLatex(0.54,0.86, wp_lable);

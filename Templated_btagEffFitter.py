@@ -20,7 +20,10 @@ SLICEVARTITLES={
     #'npv':'Primary vertex multiplicity'
 }
 SLICEVAR   = 'jetpt'
-SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
+#SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
+# Updated:
+SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
+#SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 #SYSTVARS   = ['']
 """
 Project trees from files to build the templates
@@ -105,13 +108,16 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir):
 
                 if key=='data' and len(systVar)>0 : continue
 
+                # Get alternative events weights for systemtics constructed from weight variations
                 wgtIdx, systIdx = 0, 0
                 if systVar=='jesup'      : wgtIdx, systIdx = 1,  1
                 if systVar=='jesdn'      : wgtIdx, systIdx = 2,  2
                 if systVar=='jerup'      : wgtIdx, systIdx = 3,  3
                 if systVar=='jerdn'      : wgtIdx, systIdx = 4,  4
-                if systVar=='pudn'       : wgtIdx, systIdx = 5,  0
-                if systVar=='puup'       : wgtIdx, systIdx = 6,  0
+                #if systVar=='pudn'       : wgtIdx, systIdx = 5,  0
+                if systVar=='pileupdn'       : wgtIdx, systIdx = 5,  0
+                #if systVar=='puup'       : wgtIdx, systIdx = 6,  0
+                if systVar=='pileupup'       : wgtIdx, systIdx = 6,  0
                 if systVar=='trigdn'     : wgtIdx, systIdx = 7,  0
                 if systVar=='trigup'     : wgtIdx, systIdx = 8,  0
                 if systVar=='seldn'      : wgtIdx, systIdx = 9,  0
@@ -238,7 +244,9 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
     ttFracFitter=ROOT.TTbarFracFitter()
 
     #input file
-    fIn=ROOT.TFile.Open('%s/%s_templates/%s.root' % (outDir, var, tagger) )
+    input_file = '%s/%s_templates/%s.root' % (outDir, var, tagger)
+    print 'input_file: ',input_file
+    fIn=ROOT.TFile.Open(input_file)
 
     effMeasurements,effExpected,sfMeasurements,systUncs,effUncs={},{},{},{},{}
     nOPs=len(taggerDef)-2
@@ -327,15 +335,21 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
                 saveResultIn = ROOT.TString('%s/%s_templates/%s_%s'%(outDir,var,tagger,baseName) if syst=='' else '')
                 # Always fill nominal first and save results of fit in sfMeasurements(effMeasurements) etc.
                 if len(syst)==0:
+                    # Nominal variation
                     res=ttFracFitter.fit(mc['pass'],data['pass'],mc['fail'],data['fail'],Tagger,0,iop,islice,0,saveResultIn,lumi/1000.)
                     sfMeasurements[iop][islice]=(res.sf,res.sfUnc)
                     effMeasurements[iop][islice]=(res.eff,res.effUnc)
                     effExpected[iop][islice]=(res.effExp,res.effExpUnc)
-
+                    # Up variation
                     res=ttFracFitter.fit(mc['pass'],data['pass'],mc['fail'],data['fail'],Tagger,0,iop,islice,1)
-                    systUncs[iop][islice]['closureup']=res.sf-sfMeasurements[iop][islice][0]
-                    effUncs[iop][islice]['closureup']=res.eff-effMeasurements[iop][islice][0]
+                    #systUncs[iop][islice]['closureup']=res.sf-sfMeasurements[iop][islice][0]
+                    #effUncs[iop][islice]['closureup']=res.eff-effMeasurements[iop][islice][0]
+                    systUncs[iop][islice]['mistagup']=res.sf-sfMeasurements[iop][islice][0]
+                    effUncs[iop][islice]['mistagup']=res.eff-effMeasurements[iop][islice][0]
+                    # Down variation
                     res=ttFracFitter.fit(mc['pass'],data['pass'],mc['fail'],data['fail'],Tagger,0,iop,islice,2)
+                    #systUncs[iop][islice]['mistagdn']=res.sf-sfMeasurements[iop][islice][0]
+                    #effUncs[iop][islice]['mistagdn']=res.eff-effMeasurements[iop][islice][0]
                     systUncs[iop][islice]['closuredn']=res.sf-sfMeasurements[iop][islice][0]
                     effUncs[iop][islice]['closuredn']=res.eff-effMeasurements[iop][islice][0]
                 else:# After nominal, compare with fits using systematic templates to obtain uncertainties.
@@ -382,9 +396,9 @@ def main():
     parser.add_option('-s', '--sliceVar',           dest='sliceVar',           help='slicing variable',             default='jetpt',   type='string')
     parser.add_option(      '--recycleTemplates',   dest='recycleTemplates',   help='recycleTemplates',             default=False,       action='store_true')
     parser.add_option('-n', '--njobs',              dest='njobs',              help='# jobs to run in parallel',    default=0,           type='int')
-    parser.add_option('-l', '--lumi',               dest='lumi',               help='integrated luminosity',        default=41809.459,        type='float')
+    parser.add_option('-l', '--lumi',               dest='lumi',               help='integrated luminosity',        default=59740.0,        type='float')##2017=41530.0, 2018=59740.0
     parser.add_option('-o', '--outDir',             dest='outDir',             help='output directory',             default='analysis',  type='string')
-    parser.add_option(      '--channels',           dest='channels',           help='channels to use',              default='-121,-143,-169',  type='string')#-121=ee,-143=emu,-169=mumu
+    parser.add_option(      '--channels',           dest='channels',           help='channels to use',              default='-143',  type='string')#-121=ee,-143=emu,-169=mumu
     (opt, args) = parser.parse_args()
 
     #update slicing variable

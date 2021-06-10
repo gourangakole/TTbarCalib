@@ -1,50 +1,57 @@
 #!/bin/bash
+# Script reads scale factors from sfb_report.tex and evaluates
+# uncertainties from SF variations. These can be stored in a new
+# .csv file. We can then copy the combined/total uncertainties
+# across from kin_calib.csv to the .csv file with the full breakdown
+# from this script to create file we want to distribute.
+
 numbins=7 #ptrange-1 entries
 ini=0
 fin=$numbins
 ptrange=(30 50 70 100 140 200 300 600)
-# Open the produced .csv file (e.g. kin_calib.csv) which should
-# be located inside the discriminant directory (e.g. DeepCSVBDisc_fits) in the fit directory.
-# Remove quotation marks from around SF values (last column).
-# Type :
-# $>cat kin_calib.csv | grep central | awk '{printf "%.12f\n", $11}' and copy the output to sfval=() beneath.
-# Replace the quotation marks in .csv and save.
+# Using the following command:
+# $> cat kin_calib.csv | grep central | awk '{printf $11"\n"}' | cut -d "\"" -f 2
+# and copy the output to sfval=() beneath.
 sfval=(
-0.923572182655
-0.952017188072
-0.960410237312
-0.965736329556
-0.963762938976
-0.948510646820
-0.877512574196
-0.911242723465
-0.938073456287
-0.944184720516
-0.947327673435
-0.947567045689
-0.943790435791
-0.893679976463
-0.893445551395
-0.914260625839
-0.929737508297
-0.934173583984
-0.937386751175
-0.932872533798
-0.878432035446
+0.951303899288
+0.967128872871
+0.972747325897
+0.965953826904
+0.961486637592
+0.955072164536
+0.923096776009
+0.943701267242
+0.951342403889
+0.959635078907
+0.954578518867
+0.950281500816
+0.928687632084
+0.881035625935
+0.918055176735
+0.92360240221
+0.94087189436
+0.938037395477
+0.939417600632
+0.912486672401
+0.888222515583
 )
 # Remember to change "closure" to "mistag" and "pu" to "pileup" in sfb_report.tex
 #syst=("jer qcdscale sel trig jes mistag pileup isrDef fsrDef")
 syst=("jes jer trig sel qcdscale pileup isrDef fsrDef mistag")
-# Execute this script ./prepare_csv.sh > CSVv2_Kin.csv and follow next 3 steps:
+# Execute this script ./prepare_csv.sh > <tagger>_Kin.csv and follow next 3 steps:
 #1. Open kin_calib.csv. All replace all 'up_statistic' with 'up' and all 'up_total' with 'up_statistic'. Do the same for down.
 #2. Change statistics -> statistic 0,$s/statistics/statistic/g
 #   Invert down_statistic and down, and same for up <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<????
-#3. $>cat kin_calib.csv | grep down
+#3. $>cat kin_calib.csv | grep down,
 # and
-#   $>cat kin_calib.csv | grep up
+#   $>cat kin_calib.csv | grep up,
 # Copy the output in the new .csv file (CSVv2_Kin.csv)
-#Finally compare some cases for kin_calib.csv, sfb_report.tex, and CSVv2_Kin.csv to make sure that the results are consistent
-#cat CSVv2_Kin.csv | grep central; cat CSVv2_Kin.csv | grep up,; cat CSVv2_Kin.csv | grep down,; VS cat sfb_report.tex | grep SF
+# Finally compare some cases for kin_calib.csv, sfb_report.tex, and <tagger>.csv to make sure
+# the results are consistent:
+#   $>cat CSVv2_Kin.csv | grep central;
+#   $>cat CSVv2_Kin.csv | grep up,;
+#   $>cat CSVv2_Kin.csv | grep down,;
+#   $>cat sfb_report.tex | grep SF;
 
 #The part related to stat is commented for the moment and taken from the .csv file produced by default
 #Make sure that there are not lines like ${\rm SF}_{\rm b}$ & $ [ 988.3 \pm 3.3 \pm 3.5 ] \times10^{-3} $  \\
@@ -55,7 +62,7 @@ syst=("jes jer trig sel qcdscale pileup isrDef fsrDef mistag")
 
 echo "kin ;OperatingPoint, measurementType, sysType, jetFlavor, etaMin, etaMax, ptMin, ptMax, discrMin, discrMax, formula"
 for (( wp=0; wp<3; wp++)); do
- #Central
+ # Central
  p=0
  l=0
  r=1
@@ -81,7 +88,8 @@ for (( wp=0; wp<3; wp++)); do
  # fi
  # let p=p+1
  #done
- #Systematics
+
+ # Systematics
  for sys in $syst; do
   sy=`cat sfb_report.tex | grep $sys | awk '{printf "%.12f\n", $6}'`
   p=0

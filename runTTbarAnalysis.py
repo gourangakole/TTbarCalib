@@ -7,17 +7,18 @@ import pickle
 import math
 from array import array
 from storeTools import *
-from rounding import *
+#from rounding import *
 
 CHANNELS={-11*11:'ee', -13*13:'mumu', -11*13:'emu'}
 
 """
 Perform the analysis on a single file
 """
-def runTTbarAnalysis(inFile, outFile, wgt, tmvaWgts=None,isData=False):
+def runTTbarAnalysis(inFile, outFile, wgt, tmvaWgts=None, isData=False):
 
     from ROOT import TTbarEventAnalysis
     evAnalysis=TTbarEventAnalysis()
+    print 'inFile: ' , inFile
 
     #MC specifics
     if 'TTJets' in inFile: evAnalysis.setReadTTJetsGenWeights(True)
@@ -43,31 +44,35 @@ def runTTbarAnalysis(inFile, outFile, wgt, tmvaWgts=None,isData=False):
         evAnalysis.addVarForTMVA(ROOT.TString(v))
     if not (tmvaWgts is None) : evAnalysis.setTMVAWeightsBaseDir(tmvaWgts)
 
-    print 'Checking file %s is good . . . \n' % (ROOT.TString(inFile))
     file_good = evAnalysis.checkFile(ROOT.TString(inFile))
     if file_good == 1:
-        print 'file_good == 1 (is good)'
         evAnalysis.prepareOutput(ROOT.TString(outFile))
         evAnalysis.processFile(ROOT.TString(inFile),wgt,isData)
         evAnalysis.finalizeOutput()
     else:
-        print 'file_good == 0 (not good)'
-
-
+        #print 'WARNING! file_good == 0 (not good!)'
+        process_name = inFile.split('/')[-2]
+        file_name = (inFile.split('/')[-1]).split('.')[0]
+        production_monitoring ='%s/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/production_info/failed_files_%s_%s.txt'%(os.environ['CMSSW_BASE'] , process_name,file_name)
+        #failed_files_list = open(production_monitoring, 'w+')
+        file_warning = 'WARNING! %s file_good == 0 (file can be read but no entries to run on!) \n' % inFile
+        print(file_warning)
+        #failed_files_list.write(file_warning)
+        #failed_files_list.close()
 
 """
 Wrapper to be used when run in parallel
 """
 def runTTbarAnalysisPacked(args):
-    inFile, outFile, wgt, tmvaWgts,isData = args
+
+    inFile, outFile, wgt, tmvaWgts, isData = args
     try:
-        return runTTbarAnalysis(inFile=inFile, outFile=outFile, wgt=wgt, tmvaWgts=tmvaWgts,isData=isData)
+        return runTTbarAnalysis(inFile=inFile, outFile=outFile, wgt=wgt, tmvaWgts=tmvaWgts, isData=isData)
     except :
         print 50*'<'
-        print "  Problem  (%s) with %s continuing without"%(sys.exc_info()[1],inFile)
+        print "Problem (%s) with %s continuing without"%(sys.exc_info()[1],inFile)
         print 50*'<'
         return False
-
 
 """
 steer the script
@@ -155,10 +160,9 @@ def main():
     task_list=list(set(task_list))
     print '%s jobs to run in %d parallel threads' % (len(task_list), opt.njobs)
 
-    #run the analysis jobs
+    # Run the analysis jobs
     if opt.njobs == 0:
-        for inFile, outFile,wgt, tmvaWgts,isData in task_list:
-            print 'inFile: ' , inFile
+        for inFile, outFile, wgt, tmvaWgts, isData in task_list:
             runTTbarAnalysis(inFile=inFile, outFile=outFile, wgt=wgt, tmvaWgts=tmvaWgts, isData=isData)
     else:
         from multiprocessing import Pool
@@ -170,8 +174,6 @@ def main():
     #    os.system('hadd -f %s/%s.root %s/%s_*.root' % (opt.outDir,tag,opt.outDir,tag) )
     #    os.system('rm %s/%s_*.root' % (opt.outDir,tag) )
     print 'Analysis results are available in %s' % opt.outDir
-
-    #all done here
     exit(0)
 
 

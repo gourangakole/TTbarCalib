@@ -28,11 +28,10 @@ enum JETRANK{LEAD,SUBLEAD,OTHER, INCLUSIVE=10000};
 void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t jetRank=LEAD)
 {
   gSystem->ExpandPathName(inputFile);
-
-  TString wgtsDir("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/KIN_BDT_UL17_v2");
+  TString wgtsDir_name = "${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/KIN_MVA_UL18_v6_" + myMethodList;
+  TString wgtsDir(wgtsDir_name);
   gSystem->ExpandPathName(wgtsDir);
   TMVA::gConfig().GetIONames().fWeightFileDir = wgtsDir;
-  cout << "jetRank= " << jetRank << endl;
   if(jetRank==LEAD)         TMVA::gConfig().GetIONames().fWeightFileDir += "/leading/";
   else if(jetRank==SUBLEAD) TMVA::gConfig().GetIONames().fWeightFileDir += "/subleading/";
   else if(jetRank==OTHER)   TMVA::gConfig().GetIONames().fWeightFileDir += "/others/";
@@ -82,7 +81,7 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
   Use["BDT"]             = 0; // uses Adaptive Boost
   Use["BDTG"]            = 0; // uses Gradient Boost
   Use["BDTB"]            = 0; // uses Bagging
-  Use["BDTD"]            = 1; // decorrelation + Adaptive Boost
+  Use["BDTD"]            = 0; // decorrelation + Adaptive Boost
   Use["BDTF"]            = 0; // allow usage of fisher discriminant for node splitting
   Use["RuleFit"]         = 0;
   std::cout << std::endl;
@@ -90,7 +89,7 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
 
   if (myMethodList != "") {
     for (std::map<std::string,int>::iterator it = Use.begin(); it != Use.end(); it++) it->second = 0;
-
+    cout << "Using MVA method = " << myMethodList << endl;
     std::vector<TString> mlist = TMVA::gTools().SplitString( myMethodList, ',' );
     for (UInt_t i=0; i<mlist.size(); i++) {
       std::string regMethod(mlist[i]);
@@ -106,7 +105,7 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
   }
 
   // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
-  TString outfileName( "TMVA_BDT_UL17_v2.root" );
+  TString outfileName( "TMVA_BDT_UL18_v6.root" );
   TFile* outputFile = TFile::Open( outfileName, "RECREATE" );
   cout << "Create Factory" << endl;
   TMVA::Factory *factory = new TMVA::Factory("TMVAClassification", outputFile, "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification");
@@ -117,7 +116,7 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
   cout << "Open input files" << endl;
   TFile *inF=TFile::Open(inputFile);
   TTree *t=(TTree *)inF->Get("kin");
-  cout << "Number of events to train on: " << t->GetEntries() << endl;
+  cout << "Number of events in input file \'kin\' tree: " << t->GetEntries() << endl;
   outputFile->cd();
 
   //b-jets are saved as 5, require that the event passes nominal preselection (weight[0]>0)
@@ -130,6 +129,8 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
   }
   TCut sigCut("abs(flavour)==5 && weight[0]>0 && abs(ttbar_chan)<230000" + jetRankCut);
   TCut bkgCut("abs(flavour)!=5 && weight[0]>0 && abs(ttbar_chan)<230000" + jetRankCut);
+  cout << "sigCut: " << sigCut << endl;
+  cout << "bkgCut: " << bkgCut << endl;
   dataloader->SetInputTrees(t,sigCut,bkgCut);
   dataloader->GetDataSetInfo();
 
@@ -158,10 +159,10 @@ void KIN_trainClassifier( TString myMethodList = "", TString inputFile="", Int_t
   TCut mycutb = "";
   std::stringstream SplitOptionString;
   SplitOptionString <<":SplitMode=Random:NormMode=NumEvents:!V";
-  cout << SplitOptionString.str() << endl;
+  cout << "MVA options: " << SplitOptionString.str() << endl;
   dataloader->PrepareTrainingAndTestTree( mycuts, mycutb, SplitOptionString.str() );
 
-  cout << "Book Methods" << endl;
+  cout << "Booking MVA methods . . . " << endl;
 
   // ---- Book MVA methods
   //

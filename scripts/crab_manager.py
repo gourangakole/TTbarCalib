@@ -86,9 +86,9 @@ def main(argv):
             crab_mode = arg
             print 'Crab mode: ', crab_mode
 
+    print 'Job dir: ', directory_name
     for files in os.listdir(directory_name):
-        print 'Job dir: ', directory_name
-        if 'crab_' in files:
+        if 'crab_' in files and '.py' not in files:
             print 'crab working dir = ', files
             if crab_mode == 'status':
                 print 'Checking status of crab jobs in directory.'
