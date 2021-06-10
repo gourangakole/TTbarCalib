@@ -7,6 +7,8 @@
 #include "TH1F.h"
 #include "TObjArray.h"
 #include "TString.h"
+#include "CondFormats/BTauObjects/interface/BTagCalibration.h"
+#include "CondTools/BTau/interface/BTagCalibrationReader.h"
 
 struct TTbarFracFitterResult_t
 {
@@ -29,7 +31,7 @@ class TTbarFracFitter
                               Int_t jetptRange=0,
                               Int_t NomSysupSysdown=0,
                               TString saveResultIn="",
-                              Float_t lumi=41.8);
+                              Float_t lumi=59.74);//2018 = 59.7400
   ~TTbarFracFitter();
 
 };

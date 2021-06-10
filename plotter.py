@@ -4,7 +4,7 @@ import json
 import ROOT
 import math
 
-from rounding import *
+#from rounding import *
 
 SYSTCOLORS=[ROOT.kMagenta, ROOT.kRed+1, ROOT.kMagenta+2, ROOT.kAzure+7, ROOT.kMagenta-9, ROOT.kBlue-7]
 
@@ -76,10 +76,12 @@ class Plot(object):
         self.data = convertToPoissonErrorGr(self.dataH)
 
     def appendTo(self,outUrl):
+        print 'outUrl: ', outUrl
         outF = ROOT.TFile.Open(outUrl,'UPDATE')
-        if not outF.cd(self.name):
-            outDir = outF.mkdir(self.name)
-            outDir.cd()
+        #if not outF.cd(self.name):
+            #outDir = outF.mkdir(self.name)
+            #print('cd into: ', self.name)
+            #outDir.cd()
         for m in self.mc :
             self.mc[m].Write(self.mc[m].GetName(), ROOT.TObject.kOverwrite)
         if self.dataH :
@@ -111,7 +113,6 @@ class Plot(object):
         c.SetTopMargin(0)
         c.SetRightMargin(0.00)
 
-
         #holds the main plot
         c.cd()
         p1 = ROOT.TPad('p1','p1',0.0,0.2,1.0,1.0)
@@ -140,6 +141,7 @@ class Plot(object):
         #Loop over hist list and scale to lumi accordingly
         print 'scale to lumi: %s' % (lumi)
         for h in self.mc:
+            print 'Hist %s integral before scaling: %s' % (h, self.mc[h].Integral())
             if not noScale:
                 self.mc[h].Scale(lumi)
             leg.AddEntry(self.mc[h], self.mc[h].GetTitle(), 'f')
@@ -161,7 +163,7 @@ class Plot(object):
         # Looping over hists in list and add to stacked hist
         for h in self.mc:
             stack.Add(self.mc[h],'hist')
-            print 'Adding %s to stack with integral %s' % (h, self.mc[h].Integral())
+            #print 'Adding %s to stack with integral %s' % (h, self.mc[h].Integral())
             try:
                 totalMC.Add(self.mc[h])
             except:
@@ -197,10 +199,10 @@ class Plot(object):
             if maxY < self.dataH.GetMaximum():
                 maxY=self.dataH.GetMaximum()
         if totalMC and self.dataH:
-            print self.name,"data, MC, data/MC",self.dataH.Integral(),totalMC.Integral(),
+            datamc_integral_ratio = -1.
             if totalMC.Integral()>0:
-                print self.dataH.Integral()/totalMC.Integral(),
-            print
+                datamc_integral_ratio = self.dataH.Integral()/totalMC.Integral()
+                print("%s (data/MC/ratio): %s/%s/%s" % ( self.name, self.dataH.Integral(), totalMC.Integral(), datamc_integral_ratio ) )
 
         frame.GetYaxis().SetRangeUser(0.1,maxY*1.3)
         frame.SetDirectory(0)
@@ -250,7 +252,7 @@ class Plot(object):
         maxVal=0
         minVal=10
         dataOverMC=self.dataH.Clone("dataOverMC")
-        print "integrals",dataOverMC.GetName(),totalMC.GetName(),dataOverMC.Integral(),totalMC.Integral()
+
         dataOverMC.Divide(totalMC)
         for xBin in xrange(1,dataOverMC.GetXaxis().GetNbins()+1):
             thisValue=dataOverMC.GetBinContent(xBin)
@@ -262,7 +264,8 @@ class Plot(object):
             if minVal>thisValue:
                 minVal=thisValue
 
-        ratioframe.GetYaxis().SetRangeUser(max(self.ratiorange[0],minVal*0.95), min(self.ratiorange[1],maxVal*1.05))
+        #ratioframe.GetYaxis().SetRangeUser(max(self.ratiorange[0],minVal*0.95), min(self.ratiorange[1],maxVal*1.05))
+        ratioframe.GetYaxis().SetRangeUser(0.5, 1.5)
         self._garbageList.append(frame)
         ratioframe.GetYaxis().SetNdivisions(6)
         ratioframe.GetYaxis().SetLabelSize(0.18)
@@ -434,7 +437,8 @@ def main():
     parser.add_option(      '--silent',      dest='silent' ,     help='only dump to ROOT file',         default=False,   action='store_true')
     parser.add_option(      '--saveTeX',     dest='saveTeX' ,    help='save as tex file as well',       default=False,   action='store_true')
     parser.add_option(      '--rebin',       dest='rebin',       help='rebin factor',                   default=1,       type=int)
-    parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=41809.459,    type=float)#2017
+    #parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=41809.459,    type=float)#2017
+    parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=59740.0,    type=float)# UL 2018
     parser.add_option(      '--only',        dest='only',        help='plot only these (csv)',          default='',      type='string')
     parser.add_option(      '--outLabel',    dest='outLabel',    help='appends the plots dir name',     default='',      type='string')
     (opt, args) = parser.parse_args()
@@ -478,16 +482,20 @@ def main():
                     if not keep: continue
                     if "emu" not in key:
                         continue
-                    #if "npv" not in key:
+                    ######## test ############
+                    if "SV_mass" in key:
+                        continue
+                    #if "njets" not in key:
                     #    continue
+                    ##########################
                     obj=fIn.Get(key)
                     if not obj.InheritsFrom('TH1') : continue
                     if not key in plots : plots[key]=Plot(key)
                     if opt.rebin>1:  obj.Rebin(opt.rebin)
+                    print 'key %s , Integral = %s' % (key, obj.Integral())
                     plots[key].add(h=obj,title=sample[3],color=sample[4],isData=sample[1],isSyst=isSyst)
             except:
                 print 'Skipping %s'%tag
-
 
     #show plots
     ROOT.gStyle.SetOptTitle(0)
@@ -500,7 +508,6 @@ def main():
     for p in plots :
         if opt.saveLog    : plots[p].savelog=True
         if not opt.silent : plots[p].show(outDir=outDir,lumi=opt.lumi,saveTeX=opt.saveTeX)
-        print 'appendto'
         plots[p].appendTo(outDir+'/plotter.root')
         plots[p].reset()
 

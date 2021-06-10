@@ -17,7 +17,8 @@
 #include <vector>
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
-#include "CondFormats/JetMETObjects/interface/JetResolution.h"
+//#include "CondFormats/JetMETObjects/interface/JetResolution.h"
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
 //#include "CondFormats/JetMETObjects/interface/JetResolutionObject.h"
 
 struct LJKinematics_t
@@ -38,14 +39,15 @@ class TTbarEventAnalysis
       {
 	//jet uncertainty parameterization
   //https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC#Recommended_for_MC
-	TString jecUncUrl("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL17_V5_MC_Uncertainty_AK4PF.txt");
+	TString jecUncUrl("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt");
 	gSystem->ExpandPathName(jecUncUrl);
 	jecUnc_ = new JetCorrectionUncertainty(jecUncUrl.Data());
-
-  resolution = JetResolution("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL17_JRV2_MC_SF_AK4PFchs.txt");
-  //resolution_sf = JME::JetResolutionScaleFactor("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL17_JRV2_MC_SF_AK4PFchs.txt");
-
-
+  TString jer_file("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL18_JRV2_MC_PtResolution_AK4PFchs.txt");
+  gSystem->ExpandPathName(jer_file);
+  resolution = new JME::JetResolution(jer_file.Data());
+  TString jer_SF_file("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL18_JRV2_MC_SF_AK4PFchs.txt");
+  gSystem->ExpandPathName(jer_SF_file);
+  resolution_sf = new JME::JetResolutionScaleFactor(jer_SF_file.Data());
       }
   ~TTbarEventAnalysis(){}
   void setReadTTJetsGenWeights(bool readTTJetsGenWeights)     { readTTJetsGenWeights_=readTTJetsGenWeights; }
@@ -86,15 +88,16 @@ class TTbarEventAnalysis
 
  private:
   JetCorrectionUncertainty *jecUnc_;
-  JetResolution *resolution;
-  //JetResolutionScaleFactor *resolution_sf;
+  JME::JetResolution *resolution;
+  JME::JetResolutionScaleFactor *resolution_sf;
   std::pair<float,float> getTriggerEfficiency(int id1,float pt1,float eta1,int id2,float pt2,float eta2,int ch);
   std::pair<float,float> getTriggerScaleFactor(float pt1, float pt2, int ch);
   std::pair<float,float> getLeptonIDScaleFactor(int id,float pt,float eta);
   std::pair<float,float> getElectronRECOScaleFactor(int id,float pt,float eta);
   std::pair<float,float> getMuonISOScaleFactor(int id,float pt,float eta);
   std::vector<float> getJetEnergyScales(float pt,float eta,float rawsf,float area,float rho);
-  std::vector<float> getJetResolutionScales(float pt, float eta, float genjpt);
+  //std::vector<float> getJetResolutionScales(float pt, float eta, float genjpt);
+  std::vector<float> getJERVariations(float pt, float eta, float genjpt, float JER_sf, float JER_sf_up, float JER_sf_down, float JER_mc);
 
   TGraph *puWgtGr_,*puWgtDownGr_,*puWgtUpGr_;
   bool readTTJetsGenWeights_;

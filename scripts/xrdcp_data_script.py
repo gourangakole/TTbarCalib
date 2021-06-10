@@ -24,11 +24,8 @@ redirector_name = "root://xrootd-cms.infn.it//"
 #Force use of IPv4 (temporary issues with IPv6 on lxplus)
 os.popen('export XRD_NETWORKSTACK=IPv4')
 
-# Original directory name on EOS and subsequent directories
-# for individual samples.
-#original_directory = '/store/group/phys_btag/Commissioning/ZJets/KINMistag-2018-06-09/'
-#original_directory = '/store/group/phys_btag/Commissioning/TTbar/Moriond19_Run2018_DeepFlavourPruned/'
-original_directory = '/store/group/phys_btag/Commissioning/TTbar/TTbar_UL17/'
+# Original directory name on EOS and subsequent directories for individual samples.
+original_directory = '/store/group/phys_btag/Commissioning/TTbar/TTbar_UL18/'
 original_subdir_list = [
 'MuonEG'
 #'DoubleEG'
@@ -36,9 +33,7 @@ original_subdir_list = [
 ]
 
 # EOS directory with new structure to store output (easier for runTTbarAnalysis packages to use).
-#new_directory = '/eos/cms/store/group/phys_btag/Commissioning/ZJets/KINMistag-2018-06-09_StructuredDir/'
-#new_directory = '/eos/cms/store/group/phys_btag/Commissioning/TTbar/Moriond19_2018_StructuredDir/'
-new_directory = '/eos/cms/store/group/phys_btag/Commissioning/TTbar/TTbar_UL17_StructuredDir/'
+new_directory = '/eos/cms/store/group/phys_btag/Commissioning/TTbar/TTbar_UL18_StructuredDir/'
 # Make the new EOS directory.
 eos_mkdir_cmd = 'eos mkdir '
 temp_eos_mkdir_cmd = eos_mkdir_cmd + new_directory
@@ -61,11 +56,10 @@ data_dir = temp_os_output.splitlines()
 # Can add or remove data directories from this list.
 
 data_dir = [
-'crab_crab_Data13TeV_MuonEG_Run2018B',
-'crab_crab_Data13TeV_MuonEG_Run2018C',
-'crab_crab_Data13TeV_MuonEG_Run2018D',
-'crab_crab_Data13TeV_MuonEG_Run2018E',
-'crab_crab_Data13TeV_MuonEG_Run2018F'
+'crab_crab_Data13TeV_MuonEG_UL18A',
+'crab_crab_Data13TeV_MuonEG_UL18B',
+'crab_crab_Data13TeV_MuonEG_UL18C',
+'crab_crab_Data13TeV_MuonEG_UL18D'
 ]
 
 # Loop over crab job output directories for data inside MuonEG directory.

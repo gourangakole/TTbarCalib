@@ -2,12 +2,13 @@ import optparse
 import os,sys
 import pickle
 import math
-from rounding import *
+import rounding
 import getpass,socket
 import ROOT
 from Templated_btagEffFitter import SLICEVARTITLES
+from rounding import toLatexRounded
 
-LUMI=41530.00
+LUMI=59740.0#41530.00
 SUMMARYCTR=0
 COLORS=[1,ROOT.kAzure+9,ROOT.kGreen-5,ROOT.kOrange-1] #,ROOT.kMagenta+2]
 MARKERS=[20,24,22,25]
@@ -82,16 +83,13 @@ def buildSFbSummary(inF,title,outDir):
     #iterate over the results
     table,plotsToInclude=[],[]
     for islice in effExpected[1]:
-
         tablePerOp={}
-        print 'fitInfo: '
-        print fitInfo
+        print 'Fit information: ' , fitInfo
         sliceVarMin, sliceVarMax = fitInfo['slicebins'][islice][0], fitInfo['slicebins'][islice][1]
         sliceVarMean = 0.5*(sliceVarMax+sliceVarMin)
         sliceVarDx   = 0.5*(sliceVarMax-sliceVarMin)
         #sliceVarMean = sliceVarMean+((SUMMARYCTR-1)%4-2)*sliceVarDx*0.1
         for iop in xrange(1,len(taggerDef)-2):
-
             systTable=[]
             effExp,effExpUnc = effExpected[iop][islice]
             effObs,effObsUnc = effObserved[iop][islice][0],effObserved[iop][islice][1]
@@ -108,9 +106,9 @@ def buildSFbSummary(inF,title,outDir):
                 #systTable.append( ('~~~{\\small \\it %s}'%syst,'${\\small %.1g / %.1g }$'%(sfbUncUp,sfbUncDn)) )
                 systTable.append( ('~~~{\\small \\it %s}'%syst,'${ %.1g / %.1g }$'%(sfbUncUp,sfbUncDn)) )
             sfbSystUnc=math.sqrt(sfbSystUnc)
-            additional_flat_ttbar_sfbsysunc = sfbSystUnc * 1.5
-            #sfbTotalUnc=math.sqrt(sfbStatUnc**2+sfbSystUnc**2)
-            sfbTotalUnc=math.sqrt(sfbStatUnc**2+sfbSystUnc**2+additional_flat_ttbar_sfbsysunc**2)
+            sfbTotalUnc=math.sqrt(sfbStatUnc**2+sfbSystUnc**2)
+            #additional_flat_ttbar_sfbsysunc = sfbSystUnc * 1.5
+            #sfbTotalUnc=math.sqrt(sfbStatUnc**2+sfbSystUnc**2+additional_flat_ttbar_sfbsysunc**2)
 
             for syst in effsystUncs[iop][islice]:
                 if len(syst)==0 : continue
@@ -120,33 +118,37 @@ def buildSFbSummary(inF,title,outDir):
                 effUncDn = effsystUncs[iop][islice][syst+'dn']
                 effSystUnc += (0.5*(math.fabs(effUncUp)+math.fabs(effUncDn)))**2
             effSystUnc = math.sqrt(effSystUnc)
-            additional_flat_ttbar_effsysunc = effSystUnc * 1.5
-            #effTotalUnc=math.sqrt(effObsUnc**2+effSystUnc**2)
-            effTotalUnc=math.sqrt(effObsUnc**2+effSystUnc**2+additional_flat_ttbar_effsysunc**2)
+            effTotalUnc=math.sqrt(effObsUnc**2+effSystUnc**2)
+            #additional_flat_ttbar_effsysunc = effSystUnc * 1.5
+            #effTotalUnc=math.sqrt(effObsUnc**2+effSystUnc**2+additional_flat_ttbar_effsysunc**2)
 
             #report
             if sliceVarName=='jetpt':
                 btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'central', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb),btvCalibParams)
                 btvCalib.addEntry(entry)
-                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'up_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                #btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'up_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'up', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb+sfbTotalUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
-                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'down_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                #btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'down_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'down', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb-sfbTotalUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
-                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'up_statistics', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                #btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'up_statistics', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'up_statistic', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb+sfbStatUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
-                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'down_statistics', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                #btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'down_statistics', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'down_statistic', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb-sfbStatUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
 
 
-            #fill table rows
-            tablePerOp[iop]=[('$\\varepsilon_{\\rm b}^{\\rm MC}$','%s'%toLatexRounded(effExp,effExpUnc)),
-                             ('$\\varepsilon_{\\rm b}^{\\rm obs}$','%s'%toLatexRounded(effObs,effObsUnc)),
-                             ('${\\rm SF}_{\\rm b}$','%s'%toLatexRounded(sfb,[sfbStatUnc,sfbSystUnc]))] + systTable
+            # fill table rows
+            tablePerOp[iop]=[( '$\\varepsilon_{\\rm b}^{\\rm MC}$' , '%s' % toLatexRounded(effExp,effExpUnc) ),
+                             ( '$\\varepsilon_{\\rm b}^{\\rm obs}$' , '%s' % toLatexRounded(effObs,effObsUnc) ),
+                             ( '${\\rm SF}_{\\rm b}$' , '%s' % toLatexRounded(sfb,[sfbStatUnc,sfbSystUnc]) )] + systTable
 
             #add points to graphs
             key=('eff','stat')
@@ -301,7 +303,7 @@ def produceSummaryFigures(sliceVar,summaryGr,output):
         #for ext in ['root','C']: c.SaveAs('%s/EfficiencySummary_%s_%d.%s'% (output,sliceVar,iop,ext))
 
         for ext in ['root','pdf']: c.SaveAs('%s/EfficiencySummary_%s_%d.%s'% (output,sliceVar,iop,ext))
-        plotsToInclude.append( ('Efficiency measurements as function of %s for the %d-th working point' % (SLICEVARTITLES[sliceVar],iop),
+        plotsToInclude.append( ('Efficiency measurements as function of %s for working point %d' % (SLICEVARTITLES[sliceVar],iop),
                                 '%s/EfficiencySummary_%s_%d.pdf'% (output,sliceVar,iop) ) )
 
     return plotsToInclude
@@ -332,11 +334,11 @@ def createReport(tableCollection,plotsToInclude,output):
         out.write('\\subsection{Results as function of %s}\n'%SLICEVARTITLES[sliceVar])
         firstMethod=tableCollection[sliceVar].keys()[0]
 
-        out.write('\\clearpage\n')
+        #out.write('\\clearpage\n')
         out.write('\\subsubsection{Tables}\n')
         firstMethod=tableCollection[sliceVar].keys()[0]
         for iop in tableCollection[sliceVar][firstMethod][0][1]:
-
+            out.write('\\clearpage\n')
             for i in xrange(0,len(tableCollection[sliceVar][firstMethod])):
                 sliceDef=tableCollection[sliceVar][firstMethod][i][0]
 
@@ -372,32 +374,23 @@ def createReport(tableCollection,plotsToInclude,output):
         if sliceVar in plotsToInclude:
             iplot=1
             print 'sliceVar: ', sliceVar
-            print 'plotsToInclude[sliceVar]', plotsToInclude[sliceVar]
             for caption,plot in plotsToInclude[sliceVar]:
-                print 'iplot = ', iplot
                 if iplot%4==0 : out.write('\\clearpage\n')
                 out.write('\n')
                 out.write('\\begin{figure}[!htbp]')
                 out.write('\\centering\n')
-                print 'plot'
-                print plot
                 out.write('\\includegraphics[width=0.99\\textwidth]{%s}\n' % str(plot))
-                print 'caption'
-                print caption
                 out.write('\\caption{%s}\n'%str(caption))
-                print 'end figure'
                 out.write('\\end{figure}\n')
                 out.write('\n')
-                print 'next'
                 iplot+=1
     out.write('\\end{document}\n')
 
-    #close TeX file
-    print 'close Tex files'
+    # Close TeX file
     out.close()
 
-    #compile and move to output
-    print 'output move to ' , output
+    # Compile and move to output
+    print 'output moved to ' , output
     os.system('pdflatex sfb_report.tex')
     os.system('mv -v sfb_report.* %s'%output)
 
