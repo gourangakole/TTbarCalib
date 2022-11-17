@@ -250,12 +250,7 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
 
 
     //
-    TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &passTemplates, TH1F *passDataH,
-      TObjArray &failTemplates, TH1F *failDataH,
-      TString tagger,
-      Int_t idxOfInterest, Int_t workingPoint, Int_t jetptRange, Int_t NomSysupSysdown,
-      TString saveResultIn, Float_t lumi)
-      {
+    TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &passTemplates, TH1F *passDataH, TObjArray &failTemplates, TH1F *failDataH, TString tagger, Int_t idxOfInterest, Int_t workingPoint, Int_t jetptRange, Int_t NomSysupSysdown, TString saveResultIn, Float_t lumi){
         using namespace RooFit;
 
         TTbarFracFitterResult_t result;

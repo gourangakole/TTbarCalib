@@ -7,7 +7,6 @@ import pickle
 import math
 from array import array
 from storeTools import *
-#from rounding import *
 
 CHANNELS={-11*11:'ee', -13*13:'mumu', -11*13:'emu'}
 
@@ -23,20 +22,26 @@ def runTTbarAnalysis(inFile, outFile, wgt, tmvaWgts=None, isData=False):
     #MC specifics
     if 'TTJets' in inFile: evAnalysis.setReadTTJetsGenWeights(True)
 
+    # Be careful to insure the triggers used here match those used in TTbarSelectionProducer_cfi
+    # Also ensure overlap between datastreams is avoided if necessary
+    # Trigger bit entry comes in pairs: (index , channel it's valid for)
     if isData:
         if 'MuonEG'   in inFile :
             evAnalysis.addTriggerBit(0,-11*13)
             evAnalysis.addTriggerBit(1,-11*13)
-        if 'DoubleElectron' in inFile :
-            evAnalysis.addTriggerBit(2,-11*11)
-        if 'DoubleMuon' in inFile :
-            evAnalysis.addTriggerBit(3,-13*13)
+            evAnalysis.addTriggerBit(2,-11*13)
+            evAnalysis.addTriggerBit(3,-11*13)
+            evAnalysis.addTriggerBit(4,-11*13)
+            evAnalysis.addTriggerBit(5,-11*13)
+            evAnalysis.addTriggerBit(6,-11*13)
     else:
             evAnalysis.addTriggerBit(0,-11*13)
             evAnalysis.addTriggerBit(1,-11*13)
-            evAnalysis.addTriggerBit(2,-11*11)
-            evAnalysis.addTriggerBit(3,-13*13)
-
+            evAnalysis.addTriggerBit(2,-11*13)
+            evAnalysis.addTriggerBit(3,-11*13)
+            evAnalysis.addTriggerBit(4,-11*13)
+            evAnalysis.addTriggerBit(5,-11*13)
+            evAnalysis.addTriggerBit(6,-11*13)
 
     for v in ['close_mlj[0]', 'close_dphi', 'close_deta', 'close_lj2ll_dphi', 'close_lj2ll_deta',
               'far_mlj',      'far_dphi',   'far_deta',   'far_lj2ll_dphi',   'far_lj2ll_deta',
@@ -48,17 +53,13 @@ def runTTbarAnalysis(inFile, outFile, wgt, tmvaWgts=None, isData=False):
     if file_good == 1:
         evAnalysis.prepareOutput(ROOT.TString(outFile))
         evAnalysis.processFile(ROOT.TString(inFile),wgt,isData)
-        evAnalysis.finalizeOutput()
+        evAnalysis.finalizeOutput(wgt)
     else:
-        #print 'WARNING! file_good == 0 (not good!)'
         process_name = inFile.split('/')[-2]
         file_name = (inFile.split('/')[-1]).split('.')[0]
         production_monitoring ='%s/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/production_info/failed_files_%s_%s.txt'%(os.environ['CMSSW_BASE'] , process_name,file_name)
-        #failed_files_list = open(production_monitoring, 'w+')
         file_warning = 'WARNING! %s file_good == 0 (file can be read but no entries to run on!) \n' % inFile
         print(file_warning)
-        #failed_files_list.write(file_warning)
-        #failed_files_list.close()
 
 """
 Wrapper to be used when run in parallel
@@ -124,7 +125,7 @@ def main():
     except:
         print '(Re-)Computing original number of events and storing in cache, this may take a while if it\'s the first time'
         print 'Current cache contains %d processes'%len(xsecWgts)
-        xsecWgts, integLumi = produceNormalizationCache(samplesList=samplesList,inDir=opt.inDir,cache=cache, xsecWgts=xsecWgts, integLumi=integLumi)
+        xsecWgts, integLumi = produceNormalizationCache(samplesList=samplesList,inDir=opt.inDir,cache=cache, normWgts=xsecWgts, integLumi=integLumi)
 
     #DY scale factor
     if opt.dyScale:
@@ -133,6 +134,7 @@ def main():
         cachefile.close()
         for tag in xsecWgts:
             if not 'DY' in tag: continue
+            print 'DY SF: '
             print tag,xsecWgts[tag].GetBinContent(1),' -> ',
             xsecWgts[tag].Scale(dySF[0])
             print xsecWgts[tag].GetBinContent(1)
@@ -140,6 +142,7 @@ def main():
     #create the analysis jobs
     runTags = []
     task_list = []
+    sample_count = 0;
     for tag,sample in samplesList:
         #print '[runTTbarAnalysis] tag: %s , sample: %s, xSecWeights: %s' % (tag,sample,xsecWgts[tag].GetBinContent(1))
         #check if in list
@@ -153,7 +156,10 @@ def main():
         input_list=getEOSlslist(directory=opt.inDir+'/'+tag)
         # Weight histograms passed here are passed from storeTools
         wgt = xsecWgts[tag]
+
         for nf in xrange(0,len(input_list)) :
+            #if nf > 0: # Use to run only one file for tests
+            #    continue
             outF='%s/%s_%d.root'%(opt.outDir,tag,nf)
             task_list.append( (input_list[nf], outF, wgt, opt.tmvaWgts, sample[1]) )
 
@@ -169,14 +175,8 @@ def main():
         pool = Pool(opt.njobs)
         pool.map(runTTbarAnalysisPacked, task_list)
 
-    #merge the outputs
-    #for tag in runTags:
-    #    os.system('hadd -f %s/%s.root %s/%s_*.root' % (opt.outDir,tag,opt.outDir,tag) )
-    #    os.system('rm %s/%s_*.root' % (opt.outDir,tag) )
     print 'Analysis results are available in %s' % opt.outDir
     exit(0)
-
-
 
 """
 for execution from another script

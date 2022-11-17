@@ -7,7 +7,7 @@
 #include "TH1F.h"
 #include "TObjArray.h"
 #include "TString.h"
-#include "CondFormats/BTauObjects/interface/BTagCalibration.h"
+//#include "CondFormats/BTauObjects/interface/BTagCalibration.h"
 #include "CondTools/BTau/interface/BTagCalibrationReader.h"
 
 struct TTbarFracFitterResult_t
@@ -23,15 +23,7 @@ class TTbarFracFitter
  public:
   TTbarFracFitter();
   TTbarFracFitterResult_t fit(TObjArray &fracTempl, TH1F *data, Int_t idxOfInterest=0, TString saveResultIn="");
-  TTbarFracFitterResult_t fit(TObjArray &passTemplates, TH1F *passDataH,
-                              TObjArray &failTemplates, TH1F *failDataH,
-                              TString tagger="",
-                              Int_t idxOfInterest=0,
-                              Int_t workingPoint=0,
-                              Int_t jetptRange=0,
-                              Int_t NomSysupSysdown=0,
-                              TString saveResultIn="",
-                              Float_t lumi=59.74);//2018 = 59.7400
+  TTbarFracFitterResult_t fit(TObjArray &passTemplates, TH1F *passDataH, TObjArray &failTemplates, TH1F *failDataH, TString tagger="", Int_t idxOfInterest=0, Int_t workingPoint=0, Int_t jetptRange=0, Int_t NomSysupSysdown=0, TString saveResultIn="", Float_t lumi=19.5);//2018 = 59.7400
   ~TTbarFracFitter();
 
 };

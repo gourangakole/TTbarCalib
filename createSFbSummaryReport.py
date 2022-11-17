@@ -2,13 +2,13 @@ import optparse
 import os,sys
 import pickle
 import math
-import rounding
+#import rounding
 import getpass,socket
 import ROOT
 from Templated_btagEffFitter import SLICEVARTITLES
-from rounding import toLatexRounded
+#from rounding import toLatexRounded
 
-LUMI=59740.0#41530.00
+LUMI=19500.0#16810.0#59740.0#41530.00
 SUMMARYCTR=0
 COLORS=[1,ROOT.kAzure+9,ROOT.kGreen-5,ROOT.kOrange-1] #,ROOT.kMagenta+2]
 MARKERS=[20,24,22,25]
@@ -104,7 +104,7 @@ def buildSFbSummary(inF,title,outDir):
                 sfbUncDn = systUncs[iop][islice][syst+'dn']
                 sfbSystUnc += (0.5*(math.fabs(sfbUncUp)+math.fabs(sfbUncDn)))**2
                 #systTable.append( ('~~~{\\small \\it %s}'%syst,'${\\small %.1g / %.1g }$'%(sfbUncUp,sfbUncDn)) )
-                systTable.append( ('~~~{\\small \\it %s}'%syst,'${ %.1g / %.1g }$'%(sfbUncUp,sfbUncDn)) )
+                systTable.append( ('~~~{\\small %s}'%syst,'${ %.3f / %.3f }$'%(sfbUncUp,sfbUncDn)) )
             sfbSystUnc=math.sqrt(sfbSystUnc)
             sfbTotalUnc=math.sqrt(sfbStatUnc**2+sfbSystUnc**2)
             #additional_flat_ttbar_sfbsysunc = sfbSystUnc * 1.5
@@ -146,11 +146,11 @@ def buildSFbSummary(inF,title,outDir):
 
 
             # fill table rows
-            tablePerOp[iop]=[( '$\\varepsilon_{\\rm b}^{\\rm MC}$' , '%s' % toLatexRounded(effExp,effExpUnc) ),
-                             ( '$\\varepsilon_{\\rm b}^{\\rm obs}$' , '%s' % toLatexRounded(effObs,effObsUnc) ),
-                             ( '${\\rm SF}_{\\rm b}$' , '%s' % toLatexRounded(sfb,[sfbStatUnc,sfbSystUnc]) )] + systTable
+            tablePerOp[iop]=[( '$\\varepsilon_{\\rm b}^{\\rm MC}$' , '$%0.3f \, \pm \, %0.3f$ ' % (effExp,effExpUnc) ),
+                             ( '$\\varepsilon_{\\rm b}^{\\rm obs}$' , '$%0.3f \, \pm \, %0.3f$ \\\\ \hline' % (effObs,effObsUnc) ),
+                             ( '${\\rm SF}_{\\rm b}$' , '$%0.3f \, \pm \, %0.3f \, \mathrm{(\\rm stat)} \, \pm \, %0.3f \, (\\rm syst)$' % (sfb,sfbStatUnc,sfbSystUnc) )] + systTable
 
-            #add points to graphs
+            # Add points to graphs
             key=('eff','stat')
             np=summaryGrs[iop][key].GetN()
 
@@ -345,6 +345,7 @@ def createReport(tableCollection,plotsToInclude,output):
                 out.write('\\begin{table}[ht]\n')
                 out.write('\\caption{Efficiency measurement for events with %s working point number %d.}\n'%(sliceDef,iop))
                 out.write('\\begin{center}\n')
+                out.write('\\renewcommand{\\arraystretch}{1.2}\n')
                 out.write('\\begin{tabular}[ht]{l%s}\n'%('c'*len(tableCollection[sliceVar])))
 
                 table=['Method &']

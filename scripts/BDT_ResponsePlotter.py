@@ -22,8 +22,8 @@ def main():
     ptordered_classifiers = [0,1,2]
     for idx, x in enumerate(ptordered_classifiers):
 
-        
-	input_file_name='/afs/cern.ch/work/j/jthomasw/private/IHEP/BTV/CMSSW/CMSSW_9_4_1/src/RecoBTag/PerformanceMeasurements/test/ttbar/TMVA_MVA5000_%s.root'%(x)
+
+	input_file_name='/afs/cern.ch/work/j/jthomasw/private/IHEP/BTV/CMSSW/UL16/CMSSW_10_6_20/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/training_v3/TMVA_BDT_UL16_v2_%s.root'%(x)
         input_file = TFile.Open(input_file_name)
 
         Histo_training_BDTRepsonse = ROOT.TH1D('Histo_training_BDTRepsonse','BDT Response (Train)',40,-1.0,1.0)
@@ -101,6 +101,6 @@ def main():
         c1.cd()
         c1.Modified()
         c1.Update()
-        c1.Print('BDT_Training_MVA5000_%s.png' %(x))
+        c1.Print('training_v3/TMVA_BDT_UL16_v2_%s.png' %(x))
 
 main()

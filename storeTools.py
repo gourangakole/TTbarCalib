@@ -1,3 +1,12 @@
+#################
+# storeTools.py
+#################
+# This code calculates the normalisation for the processes
+# Takes the sum(generator weights) histogram (each bin = sum of nominal or systematically varied weights)
+# Resets each bin to XS/sum(generator weights)
+# This will then be multiplied into each events event weight in TTbarEventAnalysis.cc
+# Thus, the resulting distributions only need to be scaled to the desired luminosity, which can be done in the plotting stage
+
 import ROOT, pickle, commands, os
 
 """
@@ -29,62 +38,80 @@ def getEOSlslist(directory, mask='', prepend='root://eoscms.cern.ch'):
 """
 Loops over a list of samples and produces a cache file to normalize MC
 """
-def produceNormalizationCache(samplesList,inDir,cache,xsecWgts,integLumi):
+def produceNormalizationCache(samplesList,inDir,cache,normWgts,integLumi):
 
     #loop over samples
     for tag,sample in samplesList:
-
+        print('Tag: %s, sample: %s' % (tag,sample))
         if sample[1]==1 :
             print '[storeTools] sample = %i (=data)' % sample[1]
-            print 'skipping xSecWeights in pickle file'
-            xsecWgts[tag]=None
+            print 'skipping normWeights in pickle file'
+            normWgts[tag]=None
             continue
 
-        if tag in xsecWgts:
+        if tag in normWgts:
             print '[Warning] won\'t override current definition for',tag,'. Use --resetCache option to override'
             continue
 
-
         input_list=getEOSlslist(directory=inDir+'/'+tag)
-        # Set cross-section to value in samples json.
-        # To run the non-tt normalisation xsection uncertainty, multiply the xsec for non-tt backgrounds by 30%.
-        #xsec=sample[0]*0.7
-        #xsec=sample[0]*1.3
-        xsec=sample[0]
+
+        fIn=ROOT.TFile.Open(input_list[0])
+        tree=fIn.Get("btagana/ttree")
+        nentries=tree.GetEntries()
+        if nentries > 0:
+            tree.GetEntry(0)
+            print("Process: %s, File: %s, Generator XS: %s" % (tag, input_list[0], getattr(tree, 'mcweight')))
+        fIn.Close()
+
         norigEvents=None
+        temp_mcweight = 1.
+        # To run the non-tt normalisation xsection uncertainty, multiply the mcweight for non-tt backgrounds by 30%.
+        temp_mcweight=temp_mcweight*0.7
+        # temp_mcweight=temp_mcweight*1.3
+
+        # Combine all sub-samples for process and sum the weights
         for f in input_list:
             fIn=ROOT.TFile.Open(f)
+            #tree=fIn.Get("btagana/ttree")
+            #nentries=tree.GetEntries()
+            #print('nentries: ', nentries)
+            #if nentries > 0 and 'MC13TeV' in tag:
+            #    for entry in xrange(0,nentries):
+            #        tree.GetEntry(entry)
+            #        temp_mcweight = getattr(tree, 'mcweight')
+
             if norigEvents is None:
-                norigEvents=fIn.Get('ttbarselectionproducer/wgtcounter').Clone('xsecwgts')
+                # Clone and reset just the histogram integral, contents and error (ICE)
+                norigEvents=fIn.Get('ttbarselectionproducer/wgtcounter').Clone('normwgts')
                 norigEvents.SetDirectory(0)
                 norigEvents.Reset('ICE')
-            norigEvents.Add(fIn.Get('ttbarselectionproducer/wgtcounter'))
+            # Add wgtcounter histogram from this file to combined histogram
+            # wgtcounter histogram bin 1 is filled with nominal generator weight value
+            wgtcounter_hist = fIn.Get('ttbarselectionproducer/wgtcounter')
+            norigEvents.Add(wgtcounter_hist)
             fIn.Close()
         try:
-            # Loop over nominal and all systematic variation weights stored in files histograms
-            print "TAG: ", tag
-            print "json xsec = %s, LHE Evenweights histogram bin1 (nominal sum of weights) = %s, Nominal JSONXS/sum(LHEWeight) = %s" % (xsec, norigEvents.GetBinContent(1), xsec/norigEvents.GetBinContent(1))
-            print "number of LHE weights: " , norigEvents.GetNbinsX()+1
+            # Each bin in norigEvents gives the sum of weights for the nominal or systematic variation
+            # This is for all events BEFORE any selection i.e all events generated
+            # Loop over all entries and replace each bin content with the 1/sum(gen weights)
+            print "sum(weights) = %s" % (norigEvents.GetBinContent(1))
             for xbin in xrange(1,norigEvents.GetNbinsX()+1):
-                #print "xbin: %s , xsec/norigEvents.GetBinContent(xbin): %s" % (xbin,xsec/norigEvents.GetBinContent(xbin))
-                norigEvents.SetBinContent(xbin,xsec/norigEvents.GetBinContent(xbin))
+                #print "Nominal weight entry: TAG = %s , sum(weights) = %s" % (tag, norigEvents.GetBinContent(xbin))
+                #print "Fill wgtcounter with ", 1./norigEvents.GetBinContent(xbin)
+                norigEvents.SetBinContent(xbin,1./norigEvents.GetBinContent(xbin))
                 norigEvents.SetBinError(xbin,0.)
         except:
             print 'No normalization histogram for ',tag
-        xsecWgts[tag]  = norigEvents
+        normWgts[tag]  = norigEvents
         integLumi[tag] = 1./norigEvents.GetBinContent(1) if norigEvents else 0.
         if norigEvents:
-            print "underflow = ", norigEvents.GetBinContent(0)
-            print "norigEvents.GetBinContent(1) = ", norigEvents.GetBinContent(1)
-            print "norigEvents.GetBinContent(2) = ", norigEvents.GetBinContent(2)
-            print "norigEvents.GetBinContent(3) = ", norigEvents.GetBinContent(3)
-            print '... %s JSON XS = %f pb,  Nominal JSONXS/sum(LHEWeight) = %f,  # events =%3.2f' % (tag, xsec, xsecWgts[tag].GetBinContent(1), integLumi[tag]/1000.)
+            print('%s: 1/sum(LHEWeight) = %.10f' % (tag, normWgts[tag].GetBinContent(1)))
 
     #dump to file
     cachefile=open(cache,'w')
-    pickle.dump(xsecWgts, cachefile, pickle.HIGHEST_PROTOCOL)
+    pickle.dump(normWgts, cachefile, pickle.HIGHEST_PROTOCOL)
     pickle.dump(integLumi, cachefile, pickle.HIGHEST_PROTOCOL)
     cachefile.close()
     print 'Produced normalization cache and pileup weights @ %s'%cache
 
-    return xsecWgts,integLumi
+    return normWgts,integLumi

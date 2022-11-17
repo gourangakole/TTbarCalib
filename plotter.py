@@ -138,10 +138,9 @@ class Plot(object):
             leg.AddEntry( self.data, self.data.GetTitle(),'p')
             nlegCols += 1
 
-        #Loop over hist list and scale to lumi accordingly
-        print 'scale to lumi: %s' % (lumi)
+        # Loop over hist list and scale to lumi accordingly
         for h in self.mc:
-            print 'Hist %s integral before scaling: %s' % (h, self.mc[h].Integral())
+            #print 'Hist %s integral before scaling: %s' % (h, self.mc[h].Integral())
             if not noScale:
                 self.mc[h].Scale(lumi)
             leg.AddEntry(self.mc[h], self.mc[h].GetTitle(), 'f')
@@ -234,7 +233,7 @@ class Plot(object):
             txt.DrawLatex(0.67,0.97,'%3.1f fb^{-1} (13 TeV)'%(lumi/1000.))
             #txt.DrawLatex(0.18,0.95,'#bf{CMS} #it{preliminary} %3.1f fb^{-1} (13 TeV)' % (lumi/1000.) )
 
-        #holds the ratio
+        # Canvas for ratio plot
         c.cd()
         p2 = ROOT.TPad('p2','p2',0.0,0.0,1.0,0.2)
         p2.Draw()
@@ -437,8 +436,10 @@ def main():
     parser.add_option(      '--silent',      dest='silent' ,     help='only dump to ROOT file',         default=False,   action='store_true')
     parser.add_option(      '--saveTeX',     dest='saveTeX' ,    help='save as tex file as well',       default=False,   action='store_true')
     parser.add_option(      '--rebin',       dest='rebin',       help='rebin factor',                   default=1,       type=int)
+    parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=19200.00,    type=float)#2016 pre-vfp
+    #parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=16800.00,    type=float)#2016 post-vfp
     #parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=41809.459,    type=float)#2017
-    parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=59740.0,    type=float)# UL 2018
+    #parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=59740.0,    type=float)# UL 2018
     parser.add_option(      '--only',        dest='only',        help='plot only these (csv)',          default='',      type='string')
     parser.add_option(      '--outLabel',    dest='outLabel',    help='appends the plots dir name',     default='',      type='string')
     (opt, args) = parser.parse_args()
@@ -461,7 +462,7 @@ def main():
     for slist,isSyst in [(samplesList,False),(systSamplesList,True)]:
         if slist is None : continue
         for tag,sample in slist:
-
+            print('Cross-section: ' , sample[0])
             if isSyst and not 't#bar{t}' in sample[3] :
                 print "Skipping syst sample",sample
                 continue
@@ -472,7 +473,7 @@ def main():
             fIn=ROOT.TFile.Open('%s/%s.root' % ( inDir, tag) )
             print "opening ",'%s/%s.root' % ( inDir, tag)
             try:
-                #Loop over histograms
+                # Loop over histograms in file
                 for tkey in fIn.GetListOfKeys():
                     key=tkey.GetName()
                     keep=False if len(onlyList)>0 else True
@@ -482,17 +483,17 @@ def main():
                     if not keep: continue
                     if "emu" not in key:
                         continue
-                    ######## test ############
-                    if "SV_mass" in key:
-                        continue
-                    #if "njets" not in key:
-                    #    continue
-                    ##########################
+                    if 'njets' in key:
+                        obj=fIn.Get(key)
+                        if not obj.InheritsFrom('TH1') : continue
+                        print('Key: %s, integral: %s' % (key, obj.Integral()))
+
                     obj=fIn.Get(key)
                     if not obj.InheritsFrom('TH1') : continue
                     if not key in plots : plots[key]=Plot(key)
                     if opt.rebin>1:  obj.Rebin(opt.rebin)
-                    print 'key %s , Integral = %s' % (key, obj.Integral())
+                    # Scale to cross-section
+                    obj.Scale(sample[0])
                     plots[key].add(h=obj,title=sample[3],color=sample[4],isData=sample[1],isSyst=isSyst)
             except:
                 print 'Skipping %s'%tag
@@ -514,7 +515,6 @@ def main():
     print '-'*50
     print 'Plots and summary ROOT file can be found in %s' % outDir
     print '-'*50
-
 
 """
 for execution from another script

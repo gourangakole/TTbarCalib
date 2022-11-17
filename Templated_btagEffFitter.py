@@ -23,12 +23,11 @@ SLICEVAR   = 'jetpt'
 #SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 # Updated:
 SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
-#SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 #SYSTVARS   = ['']
 """
 Project trees from files to build the templates
 """
-def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir):
+def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_syst):
 
     print 'Preparing template for %s tagger.'%(tagger)
     print 'Variable to fit is %s.'%(var)
@@ -57,10 +56,10 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir):
             for islice in xrange(0,len(SLICEBINS[SLICEVAR])):
                 for systVar in SYSTVARS:
                     if flav=='data' and len(systVar)>0 : continue
+                    #if TT_syst != 'nominal' and len(systVar)>0 : continue
                     if i==0:
                         hkey='%s_slice%d_%s'%(flav,islice,systVar)
                         histos[hkey]=ROOT.TH1F(hkey,';Discriminator;Jets',50,varRange[0],varRange[1])
-
                     for status in ['pass','fail']:
                         key='%s_%s%d_slice%d%s' % (flav, status, i, islice,systVar)
                         if i==0 and status=='fail': continue
@@ -69,19 +68,35 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir):
                         histos[key].Sumw2(0)
     baseHisto.Delete()
 
-    #add files to the corresponding chains
-    files = [ f for f in os.listdir(inDir) if '.root' in f ]
-    #print 'Files included in templates: '
-    #print files
+    # Add files to the corresponding chains
+
+    # If running on TT systematic variation we can simply ensure the TT samples are taken from the alternative directory
+    files = []
+    syst_TT_inDir=''
+    print('inDir: ', inDir)
+    if TT_syst != 'nominal':
+        syst_TT_inDir = inDir
+        #print("syst_TT_inDir: ", syst_TT_inDir)
+        files = [ f for f in os.listdir(syst_TT_inDir) if '.root' in f ]
+        files = files + [f_b for f_b in os.listdir(inDir) if '.root' in f_b and 'TTJets' not in f_b]
+    else:
+        files = [ f for f in os.listdir(inDir) if '.root' in f ]
+
+    print('files: ', files)
     chains={'mc':ROOT.TChain('kin'),'data':ROOT.TChain('kin')}
+
     for f in files:
         if 'training' in f:
             continue
-        print 'file: ' , f
         key = 'mc' if 'MC' in f else 'data'
-        chains[key].Add(inDir+'/'+f)
+        if TT_syst != 'nominal' and 'MC13TeV_TTJets' in f:
+            dir_file_name = syst_TT_inDir+'/'+f
+            chains[key].Add(dir_file_name)
+        else:
+            dir_file_name=inDir+'/'+f
+            chains[key].Add(dir_file_name)
 
-    #fill histos
+    # Fill histos
     for key in chains:
         print key , '\n'
         nentries=chains[key].GetEntries()
@@ -208,7 +223,7 @@ Wrapper to be used when run in parallel
 """
 def runPrepareTemplatesPacked(args):
     print 'runPrepareTemplatesPacked . . . . '
-    tagger, taggerDef, var, varRange, channelList, inDir, outDir = args
+    tagger, taggerDef, var, varRange, channelList, inDir, outDir, TT_syst = args
     try:
         return prepareTemplates(tagger=tagger,
                                 taggerDef=taggerDef,
@@ -216,11 +231,12 @@ def runPrepareTemplatesPacked(args):
                                 varRange=varRange,
                                 channelList=channelList,
                                 inDir=inDir,
-                                outDir=outDir)
+                                outDir=outDir,
+                                TT_syst=TT_syst)
     except :
-        print 50*'<'
-        print "  Problem found (%s) baling out of this task" % sys.exc_info()[1]
-        print 50*'<'
+        print "Exception: %s " % sys.exc_info()[0]
+        print "Culprit: %s " % sys.exc_info()[1]
+        print "Full sys exc_info : %s " % sys.exc_info()
         return False
 
 """
@@ -396,14 +412,17 @@ def main():
     parser.add_option('-s', '--sliceVar',           dest='sliceVar',           help='slicing variable',             default='jetpt',   type='string')
     parser.add_option(      '--recycleTemplates',   dest='recycleTemplates',   help='recycleTemplates',             default=False,       action='store_true')
     parser.add_option('-n', '--njobs',              dest='njobs',              help='# jobs to run in parallel',    default=0,           type='int')
-    parser.add_option('-l', '--lumi',               dest='lumi',               help='integrated luminosity',        default=59740.0,        type='float')##2017=41530.0, 2018=59740.0
+    parser.add_option('-l', '--lumi',               dest='lumi',               help='integrated luminosity',        default=None,        type='float')##2017=41530.0, 2018=59740.0
     parser.add_option('-o', '--outDir',             dest='outDir',             help='output directory',             default='analysis',  type='string')
     parser.add_option(      '--channels',           dest='channels',           help='channels to use',              default='-143',  type='string')#-121=ee,-143=emu,-169=mumu
+    parser.add_option(      '--TT_syst',           dest='TT_syst',           help='TT systematic variation',              default='nominal',  type='string')
     (opt, args) = parser.parse_args()
 
     #update slicing variable
     global SLICEVAR
     SLICEVAR=opt.sliceVar
+
+    TT_syst=opt.TT_syst
 
     #read list of taggers
     taggersFile = open(opt.taggers,'r')
@@ -420,7 +439,7 @@ def main():
             os.system('mkdir -p %s/%s_templates'%(opt.outDir,var))
             for tagger,taggerDef in taggersList:
                 if var==tagger : continue
-                task_list.append((tagger,taggerDef,var,(varMin,varMax),channelList,opt.inDir,opt.outDir))
+                task_list.append((tagger,taggerDef,var,(varMin,varMax),channelList,opt.inDir,opt.outDir,opt.TT_syst))
         print '%s jobs to run in %d parallel threads' % (len(task_list), opt.njobs)
         #Prepare templates
         if opt.njobs == 0:
@@ -431,7 +450,8 @@ def main():
                                  varRange=varRange,
                                  channelList=channelList,
                                  inDir=inDir,
-                                 outDir=outDir)
+                                 outDir=outDir,
+                                 TT_syst=TT_syst)
         else:
             from multiprocessing import Pool
             pool = Pool(opt.njobs)

@@ -4,6 +4,8 @@
 #include <random>
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <map>
 using namespace std;
 
 void TTbarEventAnalysis::prepareOutput(TString outFile)
@@ -130,11 +132,20 @@ void TTbarEventAnalysis::prepareOutput(TString outFile)
   baseHistos["traillpt"] = new TH1F("traillpt",";Trailing lepton p_{T} [GeV];Events;",   9,20,200);
   baseHistos["leadjeta"]    = new TH1F("leadjeta",    ";Pseudo-rapidity; Jets",              25, 0, 3.0);
   baseHistos["trailjeta"]   = new TH1F("trailjeta",    ";Pseudo-rapidity; Jets",              25, 0, 3.0);
-  baseHistos["evsel"]    = new TH1F("evsel",   ";Event selection;Events;",               4,0,4);
-  baseHistos["evsel"]->GetXaxis()->SetBinLabel(1,"#geq 2j");
-  baseHistos["evsel"]->GetXaxis()->SetBinLabel(2,"=2j");
-  baseHistos["evsel"]->GetXaxis()->SetBinLabel(3,"=3j");
-  baseHistos["evsel"]->GetXaxis()->SetBinLabel(4,"=4j");
+  baseHistos["evsel"]    = new TH1F("evsel",   ";Event selection;Events;",               13,0,13);
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(1,"pre-sel");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(2,"Trigger");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(3,"2l_2jet");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(4,"emu");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(5,"Mll");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(6,"lepPts");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(7,"lepEtas");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(8,"Jet Sel");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(9,"MET");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(10,"#geq 2j");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(11,"=2j");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(12,"=3j");
+  baseHistos["evsel"]->GetXaxis()->SetBinLabel(13,"=4j");
   baseHistos["jp"]=new TH1F("jp",";Jet probability;Jets",50,0,3);
   baseHistos["svhe"]=new TH1F("svhe",";Simple secondary vertex (HE);Jets",50,0,6);
   baseHistos["csv"]=new TH1F("csv",";Combined secondary vertex (IVF);Jets",50,0,1.1);
@@ -260,8 +271,18 @@ Int_t TTbarEventAnalysis::checkFile(TString inFile)
   }
 }
 
+template<typename Map>
+void PrintMap(Map& m)
+{
+    cout << "[ ";
+    for (auto &item : m) {
+        cout << item.first << ":" << item.second << " ";
+    }
+    cout << "]\n";
+}
+
 //
-Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isData)
+Int_t TTbarEventAnalysis::processFile(TString inFile, TH1F *normWgt, Bool_t isData)
 {
   //loop over events
   TFile *inF=TFile::Open(inFile);
@@ -269,6 +290,21 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
   Int_t nentries=tree->GetEntriesFast();
   std::cout << "...opening " << inFile << " -> analysing " << nentries << " events -> " << outF_->GetName();
   std::cout << std::endl;
+
+  /*map<string, double> XS_map = {{"MC13TeV_TTJets_DL_training", 72.6983,},
+                                {"MC13TeV_TTJets_AH_training", 316.466,},
+                                {"MC13TeV_TTJets_SL_training", 303.358,},
+                                {"MC13TeV_DY_M-10to50-MG", 15810.0,},
+                                {"MC13TeV_DY_M-50-MG", 6077.22,},
+                                {"MC13TeV_atW_noFullHad", 34.91,},
+                                {"MC13TeV_tW_noFullHad", 34.91,},
+                                {"MC13TeV_WW", 75.8,},
+                                {"MC13TeV_WZ", 27.6,},
+                                {"MC13TeV_ZZ", 12.14,},
+                                {"MC13TeV_WJetsToLNu", 52850.0,},
+                                {"MC13TeV_W1JetsToLNu", 8873.0,},
+                                {"MC13TeV_W2JetsToLNu", 2793.0,}};
+  PrintMap(XS_map);*/
 
   if (nentries == 0){
     inF->Close();
@@ -297,7 +333,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
     Int_t   ttbar_chan, ttbar_trigWord, ttbar_metfilterWord;
     Int_t   ttbar_nl, ttbar_lid[10], ttbar_lgid[10], ttbar_lch[10];
     Float_t ttbar_lpt[10], ttbar_leta[10], ttbar_lphi[10], ttbar_lm[10];
-    Float_t ttbar_metpt,ttbar_metphi;
+    Float_t ttbar_metpt,ttbar_metphi, ttbar_ptweight;
     Int_t   ttbar_nw;
     Int_t nPU;
     Float_t nPUtrue;
@@ -336,6 +372,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
   tree->SetBranchAddress("ttbar_lch"  ,   ev.ttbar_lch);
   tree->SetBranchAddress("ttbar_metpt",  &ev.ttbar_metpt);
   tree->SetBranchAddress("ttbar_metphi", &ev.ttbar_metphi);
+  tree->SetBranchAddress("ttbar_ptweight", &ev.ttbar_ptweight);
   tree->SetBranchAddress("ttbar_nw",     &ev.ttbar_nw);
   tree->SetBranchAddress("ttbar_w",      ev.ttbar_w);
   tree->SetBranchAddress("nJet",            &ev.nJet);
@@ -397,15 +434,19 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
   }
   cont.push_back(std::string(inFile).substr(previous, current - previous));
   std::string filenickname = cont.at(0);
-
   if(!isData){
-    SetPUWeightTarget("pileup_weights/pileupWgts2018.root",filenickname);
+    //SetPUWeightTarget("pileup_weights/pileupWgts2016.root",filenickname);
+    SetPUWeightTarget("pileup_weights/pileupWgts2016_preVFP.root",filenickname);
   }
 
   int Event_i = 0;
+
+  //nentries=100;
   for(Int_t i=Event_i; i<nentries; i++){
     tree->GetEntry(i);
     if(!isData){
+      // From the pileup weights histogram made before running this code,
+      // get the Data/MC pileup wgt using the integer number of pileup vertices .
       if(puWgtGr_)     {puWgtNom = puWgtGr_->Eval(ev.nPU);}
       if(puWgtDownGr_) {puWgtLo  = puWgtDownGr_->Eval(ev.nPU);}
       if(puWgtUpGr_)   {puWgtHi  = puWgtUpGr_->Eval(ev.nPU);}
@@ -419,10 +460,12 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
     histos_["puwgtnorm" ]->Fill(3.,puWgtHi);
     //=== Generator weights ===
     // genWgt = nominal LHE event weight
-    // genWgt set to nominal EventInfo.ttbar_w[0].
     // Each entry in ttbar_w corresponds to a LHE weight variation
-    // that has been normalised to the nominal LHE wgt value.
-    Float_t genWgt = ev.ttbar_nw==0 ? 1.0 : ev.ttbar_w[0];
+    // Multiplying each event by the mcweight should remove dependence on generator XS i.e. any scale dependence on # generated events
+    // This is because we are also going to scale each event by 1/sum(weights), where this value is taken from the storeTools.py script
+    Double_t genWgt = ev.ttbar_nw==0 ? 1.0 : ev.ttbar_w[0];
+    //if(genWgt>73.){cout << "genWgt: " << genWgt << endl;}
+    //cout << "genWgt: " << genWgt << endl;
 
     Float_t qcdScaleLo(1.0),qcdScaleHi(1.0),hdampLo(1.0),hdampHi(1.0);
     double isrRedHi=1;
@@ -438,12 +481,13 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
     double isrConLo=1;
     double fsrConLo=1;
     if(readTTJetsGenWeights_ && ev.ttbar_nw>17){
-      // Weight * [sum(weights for given systematic) / sum(weights nominal)
+      // Weight * [1/sum(weights for given systematic)] / [1/sum(weights nominal)]
+      // will divide later by genWgt as appropriate
       // N.B. for GetBinContent(X) 'X' must be weight index + 1 due to way histogram is filled (0th bin always underflow).
-      qcdScaleLo=ev.ttbar_w[9]*(xsecWgt->GetBinContent(10)/xsecWgt->GetBinContent(1));
-      qcdScaleHi=ev.ttbar_w[5]*(xsecWgt->GetBinContent(6)/xsecWgt->GetBinContent(1));
-      hdampLo=ev.ttbar_w[ev.ttbar_nw-17]*(xsecWgt->GetBinContent(ev.ttbar_nw-17+1)/xsecWgt->GetBinContent(1));
-      hdampHi=ev.ttbar_w[ev.ttbar_nw-9]*(xsecWgt->GetBinContent(ev.ttbar_nw-9+1)/xsecWgt->GetBinContent(1));
+      qcdScaleLo=(ev.ttbar_w[9]) * (normWgt->GetBinContent(10)/normWgt->GetBinContent(1));
+      qcdScaleHi=(ev.ttbar_w[5]) * (normWgt->GetBinContent(6)/normWgt->GetBinContent(1));
+      hdampLo=(ev.ttbar_w[ev.ttbar_nw-17]) * (normWgt->GetBinContent(ev.ttbar_nw-17+1)/normWgt->GetBinContent(1));
+      hdampHi=(ev.ttbar_w[ev.ttbar_nw-9]) * (normWgt->GetBinContent(ev.ttbar_nw-9+1)/normWgt->GetBinContent(1));
 
       // >>> PSWeights <<<
       // Vector of weight to be used instead of old ISR/FSR varied alternative samples.
@@ -453,61 +497,62 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
       // 1086 = isrDefHi isr:muRfac=0.5,   1087 = fsrDefHi fsr:muRfac=0.5,   1088 = isrDefLo isr:muRfac=2.0,   1089 = fsrDefLo fsr:muRfac=2.0,
       // 1090 = isrConHi isr:muRfac=0.25,  1091 = fsrConHi fsr:muRfac=0.25,  1092 = isrConLo isr:muRfac=4.0,   1093 = fsrConLo fsr:muRfac=4.0
 
-      isrRedHi = ev.ttbar_w[1082]*(xsecWgt->GetBinContent(1083)/xsecWgt->GetBinContent(1));
-      fsrRedHi = ev.ttbar_w[1083]*(xsecWgt->GetBinContent(1084)/xsecWgt->GetBinContent(1));
-      isrRedLo = ev.ttbar_w[1084]*(xsecWgt->GetBinContent(1085)/xsecWgt->GetBinContent(1));
-      fsrRedLo = ev.ttbar_w[1085]*(xsecWgt->GetBinContent(1086)/xsecWgt->GetBinContent(1));
-      isrDefHi = ev.ttbar_w[1086]*(xsecWgt->GetBinContent(1087)/xsecWgt->GetBinContent(1));
-      fsrDefHi = ev.ttbar_w[1087]*(xsecWgt->GetBinContent(1088)/xsecWgt->GetBinContent(1));
-      isrDefLo = ev.ttbar_w[1088]*(xsecWgt->GetBinContent(1089)/xsecWgt->GetBinContent(1));
-      fsrDefLo = ev.ttbar_w[1089]*(xsecWgt->GetBinContent(1090)/xsecWgt->GetBinContent(1));
-      isrConHi = ev.ttbar_w[1090]*(xsecWgt->GetBinContent(1091)/xsecWgt->GetBinContent(1));
-      fsrConHi = ev.ttbar_w[1091]*(xsecWgt->GetBinContent(1092)/xsecWgt->GetBinContent(1));
-      isrConLo = ev.ttbar_w[1092]*(xsecWgt->GetBinContent(1093)/xsecWgt->GetBinContent(1));
-      fsrConLo = ev.ttbar_w[1093]*(xsecWgt->GetBinContent(1094)/xsecWgt->GetBinContent(1));
+      isrRedHi = (ev.ttbar_w[1082]) * (normWgt->GetBinContent(1083)/normWgt->GetBinContent(1));
+      fsrRedHi = (ev.ttbar_w[1083]) * (normWgt->GetBinContent(1084)/normWgt->GetBinContent(1));
+      isrRedLo = (ev.ttbar_w[1084]) * (normWgt->GetBinContent(1085)/normWgt->GetBinContent(1));
+      fsrRedLo = (ev.ttbar_w[1085]) * (normWgt->GetBinContent(1086)/normWgt->GetBinContent(1));
+      isrDefHi = (ev.ttbar_w[1086]) * (normWgt->GetBinContent(1087)/normWgt->GetBinContent(1));
+      fsrDefHi = (ev.ttbar_w[1087]) * (normWgt->GetBinContent(1088)/normWgt->GetBinContent(1));
+      isrDefLo = (ev.ttbar_w[1088]) * (normWgt->GetBinContent(1089)/normWgt->GetBinContent(1));
+      fsrDefLo = (ev.ttbar_w[1089]) * (normWgt->GetBinContent(1090)/normWgt->GetBinContent(1));
+      isrConHi = (ev.ttbar_w[1090]) * (normWgt->GetBinContent(1091)/normWgt->GetBinContent(1));
+      fsrConHi = (ev.ttbar_w[1091]) * (normWgt->GetBinContent(1092)/normWgt->GetBinContent(1));
+      isrConLo = (ev.ttbar_w[1092]) * (normWgt->GetBinContent(1093)/normWgt->GetBinContent(1));
+      fsrConLo = (ev.ttbar_w[1093]) * (normWgt->GetBinContent(1094)/normWgt->GetBinContent(1));
     }
 
     //
     //CHANNEL ASSIGNMENT
     //
-    if(ev.ttbar_nl<2 || ev.nJet<2) continue;
-
     ev.ttbar_chan=ev.ttbar_lid[0]*ev.ttbar_lch[0]*ev.ttbar_lid[1]*ev.ttbar_lch[1];
     std::string ch("");
     if(ev.ttbar_chan==-11*13) ch="emu";
     if(ev.ttbar_chan==-11*11) ch="ee";
     if(ev.ttbar_chan==-13*13) ch="mumu";
-    if(ch=="") continue;
 
-    //Currently only using emu channel
-    if(ch!="emu"){continue;}
-
-    //TRIGGER
-    // 143 = emu trigger
+    // TRIGGER
     bool hasTrigger( triggerBits_.size()==0  ? true : false);
-    for(size_t ibit=0; ibit<triggerBits_.size(); ibit++){
-      if(triggerBits_[ibit].second!=ev.ttbar_chan) continue;
-      hasTrigger |= ((ev.ttbar_trigWord>>triggerBits_[ibit].first) & 1);
-    }
-    if(!hasTrigger) continue;
-
-    //Trigger efficiency weight
     Float_t trigWgtLo(1.0), trigWgtNom(1.0), trigWgtHi(1.0);
-    if(!isData){
-      double leading_lep_pt;
-      double subleading_lep_pt;
-      if (ev.ttbar_lpt[0]>ev.ttbar_lpt[1]){
-          leading_lep_pt = ev.ttbar_lpt[0];
-          subleading_lep_pt = ev.ttbar_lpt[1];
+    for(size_t ibit=0; ibit<triggerBits_.size(); ibit++){
+      // Only accept triggers valid for the assigned decay channel
+      // Currently only use eµ cross-triggers
+      if(triggerBits_[ibit].second!=ev.ttbar_chan) {
+        continue;
       }
-      else{
-        leading_lep_pt = ev.ttbar_lpt[1];
-        subleading_lep_pt = ev.ttbar_lpt[0];
+      if(triggerBits_[ibit].first > 2){
+        continue;
       }
-      std::pair<float,float> trigSF=getTriggerScaleFactor(leading_lep_pt, subleading_lep_pt, ev.ttbar_chan);
-      trigWgtLo=trigSF.first-trigSF.second;
-      trigWgtNom=trigSF.first;
-      trigWgtHi=trigSF.first+trigSF.second;
+
+      //Trigger efficiency weight
+      if(!isData){
+        double leading_lep_pt;
+        double subleading_lep_pt;
+        if (ev.ttbar_lpt[0]>ev.ttbar_lpt[1]){
+            leading_lep_pt = ev.ttbar_lpt[0];
+            subleading_lep_pt = ev.ttbar_lpt[1];
+        }
+        else{
+          leading_lep_pt = ev.ttbar_lpt[1];
+          subleading_lep_pt = ev.ttbar_lpt[0];
+        }
+        std::pair<float,float> trigSF=getTriggerScaleFactor(leading_lep_pt, subleading_lep_pt, ev.ttbar_chan, triggerBits_[ibit].first);
+        trigWgtLo=trigSF.first-trigSF.second;
+        trigWgtNom=trigSF.first;
+        trigWgtHi=trigSF.first+trigSF.second;
+      }
+
+      hasTrigger |= ( (ev.ttbar_trigWord>>triggerBits_[ibit].first) & 1);
+
     }
 
     //Lepton selection efficiency
@@ -545,8 +590,6 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
 
       muISOSF_lep1 = getMuonISOScaleFactor(ev.ttbar_lid[0],ev.ttbar_lpt[0],ev.ttbar_leta[0]);
       muISOSF_lep2 = getMuonISOScaleFactor(ev.ttbar_lid[1],ev.ttbar_lpt[1],ev.ttbar_leta[1]);
-      //cout << "muISOSF_lep1: " << muISOSF_lep1.first << endl;
-      //cout << "muISOSF_lep2: " << muISOSF_lep2.first << endl;
 
       mu1ISOSFLo  *= (muISOSF_lep1.first-muISOSF_lep1.second);
       mu1ISOSFNom *= muISOSF_lep1.first;
@@ -559,7 +602,6 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
       muISOSFLo  *= mu1ISOSFLo*mu2ISOSFLo;
       muISOSFNom *= mu1ISOSFNom*mu2ISOSFNom;
       muISOSFHi  *= mu1ISOSFHi*mu2ISOSFHi;
-
     }
 
     //(Di)Lepton cuts
@@ -568,28 +610,36 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
       lp4.push_back( TLorentzVector(0,0,0,0) );
       lp4[il].SetPtEtaPhiM(ev.ttbar_lpt[il],ev.ttbar_leta[il],ev.ttbar_lphi[il],0.);
     }
+
     TLorentzVector dilepton(lp4[0]+lp4[1]);
     Float_t mll=dilepton.M();
-    if(mll<90){continue;}
-    if(lp4[0].Pt()<25 || lp4[1].Pt()<25) continue;
-    if(lp4[0].Eta()>2.4 || lp4[1].Eta()>2.4) continue;
 
-    // Nominal event weight
-    //MuID * MuIso * MuTrig (Mu channel)
-    //EleID * EleReco * EleTrig (Ele channel)
+    // Calculate nominal event weight
+    // Cross-section & luminosity scaling left out here
+    // Applied later in plotting macro to allow faster turn-around incase values change
+    // Not needed in training and overall normalisation doesn't affect the fit
 
+    Float_t presel_evwgt(1.0);
     Float_t evWgt(1.0);
+    Float_t inverse_sumgenwgt(1.0);
     if(!isData){
-      evWgt *= puWgtNom*trigWgtNom*lepIDSFNom*genWgt*eleRecoSFNom*muISOSFNom;
-      //cout << "genWgt: " << genWgt << endl;
-      if(xsecWgt) {
-        // xsecWgt = Nominal JSONXS / sum(LHE weights) = 1 / # events
-        //cout << "xsecWgt: " << xsecWgt->GetBinContent(1) << endl;
-        evWgt *= xsecWgt->GetBinContent(1); // 1 / # events
+      evWgt *= genWgt*puWgtNom*trigWgtNom*lepIDSFNom*eleRecoSFNom*muISOSFNom;
+      evWgt *= 0.7;
+      presel_evwgt *= genWgt*puWgtNom*trigWgtNom;
+      if(std::string(inFile).find("_TTJets_") != std::string::npos){
+        evWgt *= ev.ttbar_ptweight;
+        presel_evwgt *= ev.ttbar_ptweight;
+      }
+      if(normWgt) {
+        inverse_sumgenwgt = normWgt->GetBinContent(1);
+        evWgt *= inverse_sumgenwgt; // 1 / sum(wgts)
+        presel_evwgt *= inverse_sumgenwgt;
         string outfname( outF_->GetName() );
       }
     }
-    histos_[ch+"_npvinc"]->Fill(ev.nPV-1,evWgt);
+
+    histos_[ch+"_evsel"]->Fill("pre-sel",presel_evwgt);
+    histos_[ch+"_npvinc"]->Fill(ev.nPV-1,presel_evwgt);
     npv_=ev.nPV;
 
     //#########################
@@ -663,7 +713,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
         if(iSystVar==3) varjp4[iSystVar] *= jerSF[1]/jerSF[0];
         if(iSystVar==4) varjp4[iSystVar] *= jerSF[2]/jerSF[0];
 
-        // Fill ttbar lepton+jets kinematic variables -> MVA input variables
+        // Fill kinematic variables -> MVA input variables
         // Stored in LJKinematics object
         std::vector< LJKinematics_t > ljkinematics;
         for(Int_t il=0; il<2; il++){
@@ -728,14 +778,47 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
     bool passMet(ev.ttbar_metpt>40 ?  true : false);
     bool passJets(selJetsP4.size()>=2 ? true : false);
 
+    if(!hasTrigger){
+      continue;
+    }
+    histos_[ch+"_evsel"]->Fill("Trigger",presel_evwgt);
+    if(ev.ttbar_nl<2 || ev.nJet<2){
+      continue;
+    }
+    histos_[ch+"_evsel"]->Fill("2l_2jet",presel_evwgt);
+    if(ch!="emu"){
+      continue;
+    }
+    histos_[ch+"_evsel"]->Fill("emu",presel_evwgt);
+    if(mll<90){
+      continue;
+    }
+    histos_[ch+"_evsel"]->Fill("Mll",evWgt);
+    if(lp4[0].Pt()<25 || lp4[1].Pt()<25){
+      continue;
+    }
+    histos_[ch+"_evsel"]->Fill("lepPts",evWgt);
+    if(lp4[0].Eta()>2.4 || lp4[1].Eta()>2.4){
+      continue;
+    }
     //if( (* ch.find("ee")>0 || *ch.Contains("mumu")>0 ) && !zCand ){continue;}
-    if(!passJets){continue;}
+    histos_[ch+"_evsel"]->Fill("lepEtas",evWgt);
+    if(!passJets){
+      continue;
+    }
     histos_[ch+"_mllinc"]->Fill(mll,evWgt);
     histos_[ch+"_precut_met"]->Fill(ev.ttbar_metpt,evWgt);
-    if(!passMet) {continue;}
+    histos_[ch+"_evsel"]->Fill("Jet Sel",evWgt);
+    if(!passMet) {
+      continue;
+    }
+    histos_[ch+"_evsel"]->Fill("MET",evWgt);
     histos_[ch+"_met"]->Fill(ev.ttbar_metpt,evWgt);
-    histos_[ch+"_evsel"]->Fill(0.,evWgt);
-    if(selJetsP4.size()<5) histos_[ch+"_evsel"]->Fill(selJets.size()-1,evWgt);
+
+    if(selJetsP4.size()>=2){histos_[ch+"_evsel"]->Fill("#geq 2j",evWgt);}
+    if(selJetsP4.size()==2){histos_[ch+"_evsel"]->Fill("=2j",evWgt);}
+    if(selJetsP4.size()==3){histos_[ch+"_evsel"]->Fill("=3j",evWgt);}
+    if(selJetsP4.size()==4){histos_[ch+"_evsel"]->Fill("=4j",evWgt);}
 
     histos_[ch+"_npv"]->Fill(ev.nPV-1,evWgt);
     histos_[ch+"_mll"]->Fill(mll,evWgt);
@@ -883,8 +966,9 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
     weight_[29] = evWgt*eleRecoSFLo/eleRecoSFNom;
     weight_[30]= evWgt*eleRecoSFHi/eleRecoSFNom;
 
-    //fill trees
-
+    // Fill trees
+    // Jets are pT ordered 0(highest)->Nj(lowest)
+    // kinTree branches are filled with multiple entries, one for each jet in the event
     for(size_t ij=0; ij<selJetsP4.size(); ij++){
       Int_t jetIdx(selJets[ij]);
       jetrank_ = ij;
@@ -931,6 +1015,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile,TH1F *xsecWgt, Bool_t isDat
       DeepFlavourB_[0]=ev.Jet_DeepFlavourB[jetIdx];
       kinTree_->Fill();
     }
+    //cout << "=== jetFlavour_[0]: " << jetFlavour_[0] << endl;
 
     //FtM tree is filled with the two leading jets in the KIN discriminator
     if(tmvaReader_){
@@ -980,68 +1065,74 @@ std::pair<float,float> TTbarEventAnalysis::getTriggerEfficiency(int id1,float pt
 }
 
 // eµ channel trigger scale factors.
-//https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgHLTScaleFactorMeasurements
-//https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2017#Scale_Factors_with_statistical_e
-std::pair<float,float> TTbarEventAnalysis::getTriggerScaleFactor(float pt1, float pt2, int ch)
+std::pair<float,float> TTbarEventAnalysis::getTriggerScaleFactor(float pt1, float pt2, int ch, int trigger_index)
 {
   std::pair<float,float>res(1.0,0.0);
-  if(ch==-11*13) {
-    if(20.000 < pt1 && pt1 < 40.000){
-      if(15.000 < pt2 && pt2 < 30.000){res.first=0.94812; res.second=0.02164;}
-      if(30.000 < pt2 && pt2 < 45.000){res.first=0.95836; res.second=0.02437;}
-      if(45.000 < pt2 && pt2 < 60.000){res.first=0.00000; res.second=0.01000;}
-      if(60.000 < pt2 && pt2 < 80.000){res.first=0.00000; res.second=0.01000;}
-      if(80.000 < pt2 && pt2 < 100.000){res.first=0.00000; res.second=0.01000;}
-      if(100.000 < pt2 && pt2 < 150.000){res.first=0.00000; res.second=0.01000;}
-      if(150.000 < pt2 && pt2 < 200.000){res.first=0.00000; res.second=0.01000;}
+  // eµ cross-triggers
+  if(ch==-11*13 && trigger_index <= 2) {
+    if(20.000 < pt1 < 40.000){
+      if(15.000 < pt2 < 30.000){res.first=0.99337; res.second=0.01311;}
+      if(30.000 < pt2 < 45.000){res.first=1.00016; res.second=0.02094;}
+      if(45.000 < pt2 < 60.000){res.first=1.00000; res.second=0.00000;}
+      if(60.000 < pt2 < 80.000){res.first=1.00000; res.second=0.00000;}
+      if(80.000 < pt2 < 100.000){res.first=1.00000; res.second=0.00000;}
+      if(100.000 < pt2 < 150.000){res.first=1.00000; res.second=0.00000;}
+      if(150.000 < pt2 < 200.000){res.first=1.00000; res.second=0.00000;}
     }
-    if(40.000 < pt1 && pt1 < 60.000){
-      if(15.000 < pt2 && pt2 < 30.000){res.first=0.95738; res.second=0.01663;}
-      if(30.000 < pt2 && pt2 < 45.000){res.first=0.98550; res.second=0.01179;}
-      if(45.000 < pt2 && pt2 < 60.000){res.first=0.98787; res.second=0.01122;}
-      if(60.000 < pt2 && pt2 < 80.000){res.first=0.00000; res.second=0.01000;}
-      if(80.000 < pt2 && pt2 < 100.000){res.first=0.00000; res.second=0.01000;}
-      if(100.000 < pt2 && pt2 < 150.000){res.first=0.00000; res.second=0.01000;}
-      if(150.000 < pt2 && pt2 < 200.000){res.first=0.00000; res.second=0.01000;}
+    if(40.000 < pt1 < 60.000){
+      if(15.000 < pt2 < 30.000){res.first=0.99469; res.second=0.01272;}
+      if(30.000 < pt2 < 45.000){res.first=0.99636; res.second=0.01099;}
+      if(45.000 < pt2 < 60.000){res.first=0.99725; res.second=0.01331;}
+      if(60.000 < pt2 < 80.000){res.first=1.00000; res.second=0.00000;}
+      if(80.000 < pt2 < 100.000){res.first=1.00000; res.second=0.00000;}
+      if(100.000 < pt2 < 150.000){res.first=1.00000; res.second=0.00000;}
+      if(150.000 < pt2 < 200.000){res.first=1.00000; res.second=0.00000;}
     }
-    if(60.000 < pt1 && pt1 < 80.000){
-      if(15.000 < pt2 && pt2 < 30.000){res.first=0.98187; res.second=0.01356;}
-      if(30.000 < pt2 && pt2 < 45.000){res.first=0.98941; res.second=0.01091;}
-      if(45.000 < pt2 && pt2 < 60.000){res.first=0.99366; res.second=0.01066;}
-      if(60.000 < pt2 && pt2 < 80.000){res.first=0.99276; res.second=0.01029;}
-      if(80.000 < pt2 && pt2 < 100.000){res.first=0.00000; res.second=0.01000;}
-      if(100.000 < pt2 && pt2 < 150.000){res.first=0.00000; res.second=0.01000;}
-      if(150.000 < pt2 && pt2 < 200.000){res.first=0.00000; res.second=0.01000;}
+    if(60.000 < pt1 < 80.000){
+      if(15.000 < pt2 < 30.000){res.first=0.98931; res.second=0.01529;}
+      if(30.000 < pt2 < 45.000){res.first=0.99984; res.second=0.01049;}
+      if(45.000 < pt2 < 60.000){res.first=0.99942; res.second=0.01070;}
+      if(60.000 < pt2 < 80.000){res.first=0.99965; res.second=0.01134;}
+      if(80.000 < pt2 < 100.000){res.first=1.00000; res.second=0.00000;}
+      if(100.000 < pt2 < 150.000){res.first=1.00000; res.second=0.00000;}
+      if(150.000 < pt2 < 200.000){res.first=1.00000; res.second=0.00000;}
     }
-    if(80.000 < pt1 && pt1 < 100.000){
-      if(15.000 < pt2 && pt2 < 30.000){res.first=0.98628; res.second=0.01478;}
-      if(30.000 < pt2 && pt2 < 45.000){res.first=0.99097; res.second=0.01230;}
-      if(45.000 < pt2 && pt2 < 60.000){res.first=0.99191; res.second=0.01099;}
-      if(60.000 < pt2 && pt2 < 80.000){res.first=0.99374; res.second=0.01020;}
-      if(80.000 < pt2 && pt2 < 100.000){res.first=0.99479; res.second=0.01112;}
-      if(100.000 < pt2 && pt2 < 150.000){res.first=0.00000; res.second=0.01000;}
-      if(150.000 < pt2 && pt2 < 200.000){res.first=0.00000; res.second=0.01000;}
+    if(80.000 < pt1 < 100.000){
+      if(15.000 < pt2 < 30.000){res.first=0.98898; res.second=0.02347;}
+      if(30.000 < pt2 < 45.000){res.first=0.99689; res.second=0.01625;}
+      if(45.000 < pt2 < 60.000){res.first=0.99809; res.second=0.01305;}
+      if(60.000 < pt2 < 80.000){res.first=0.99969; res.second=0.01141;}
+      if(80.000 < pt2 < 100.000){res.first=0.99418; res.second=0.01539;}
+      if(100.000 < pt2 < 150.000){res.first=1.00000; res.second=0.00000;}
+      if(150.000 < pt2 < 200.000){res.first=1.00000; res.second=0.00000;}
     }
-    if(100.000 < pt1 && pt1 < 150.000){
-      if(15.000 < pt2 && pt2 < 30.000){res.first=0.97289; res.second=0.01262;}
-      if(30.000 < pt2 && pt2 < 45.000){res.first=0.98453; res.second=0.01075;}
-      if(45.000 < pt2 && pt2 < 60.000){res.first=0.99202; res.second=0.01029;}
-      if(60.000 < pt2 && pt2 < 80.000){res.first=0.99469; res.second=0.01009;}
-      if(80.000 < pt2 && pt2 < 100.000){res.first=0.99551; res.second=0.01109;}
-      if(100.000 < pt2 && pt2 < 150.000){res.first=0.99514; res.second=0.01080;}
-      if(150.000 < pt2 && pt2 < 200.000){res.first=0.00000; res.second=0.01000;}
+    if(100.000 < pt1 < 150.000){
+      if(15.000 < pt2 < 30.000){res.first=0.99423; res.second=0.03267;}
+      if(30.000 < pt2 < 45.000){res.first=0.99641; res.second=0.01130;}
+      if(45.000 < pt2 < 60.000){res.first=0.99959; res.second=0.01025;}
+      if(60.000 < pt2 < 80.000){res.first=0.99988; res.second=0.01020;}
+      if(80.000 < pt2 < 100.000){res.first=0.99918; res.second=0.01695;}
+      if(100.000 < pt2 < 150.000){res.first=0.99983; res.second=0.01088;}
+      if(150.000 < pt2 < 200.000){res.first=1.00000; res.second=0.00000;}
     }
-    if(150.000 < pt1 && pt1 < 200.000){
-      if(15.000 < pt2 && pt2 < 30.000){res.first=0.98664; res.second=0.01574;}
-      if(30.000 < pt2 && pt2 < 45.000){res.first=0.97758; res.second=0.01120;}
-      if(45.000 < pt2 && pt2 < 60.000){res.first=0.98650; res.second=0.01063;}
-      if(60.000 < pt2 && pt2 < 80.000){res.first=0.98866; res.second=0.01358;}
-      if(80.000 < pt2 && pt2 < 100.000){res.first=0.99032; res.second=0.01075;}
-      if(100.000 < pt2 && pt2 < 150.000){res.first=0.99601; res.second=0.01020;}
-      if(150.000 < pt2 && pt2 < 200.000){res.first=0.99683; res.second=0.01171;}
+    if(150.000 < pt1 < 200.000){
+      if(15.000 < pt2 < 30.000){res.first=0.98106; res.second=0.03084;}
+      if(30.000 < pt2 < 45.000){res.first=0.99543; res.second=0.01638;}
+      if(45.000 < pt2 < 60.000){res.first=0.99783; res.second=0.01458;}
+      if(60.000 < pt2 < 80.000){res.first=0.99664; res.second=0.01323;}
+      if(80.000 < pt2 < 100.000){res.first=0.99361; res.second=0.01080;}
+      if(100.000 < pt2 < 150.000){res.first=0.99859; res.second=0.01033;}
+      if(150.000 < pt2 < 200.000){res.first=0.99502; res.second=0.01114;}
     }
   }
-  else{cout << "[getTriggerScaleFactor] Warning: not emu channel!" << endl;}
+  //Single muon triggers
+  if(ch==-11*13 && (trigger_index == 3 || trigger_index == 4)) {
+
+  }
+  //Single electron triggers
+  if(ch==-11*13 && (trigger_index == 5 || trigger_index == 6)) {
+
+  }
   return res;
 }
 
@@ -1049,136 +1140,116 @@ std::pair<float,float> TTbarEventAnalysis::getTriggerScaleFactor(float pt1, floa
 std::pair<float,float> TTbarEventAnalysis::getLeptonIDScaleFactor(int id,float pt,float eta)
 {
   std::pair<float,float>res(1.0,0.0);
-  //https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018
   if(abs(id)==11){
     if(-2.500 < eta < -2.000){
-    if(10.000 < pt < 20.000){res.first=1.05682; res.second=0.02460;}
-    if(20.000 < pt < 35.000){res.first=1.00142; res.second=0.01506;}
-    if(35.000 < pt < 50.000){res.first=0.99510; res.second=0.00330;}
-    if(50.000 < pt < 100.000){res.first=0.99180; res.second=0.00426;}
-    if(100.000 < pt < 200.000){res.first=1.00000; res.second=0.01294;}
-    if(200.000 < pt < 500.000){res.first=0.98917; res.second=0.05359;}
-    }
-    if(-2.000 < eta < -1.566){
-    if(10.000 < pt < 20.000){res.first=1.03531; res.second=0.01858;}
-    if(20.000 < pt < 35.000){res.first=0.98705; res.second=0.01316;}
-    if(35.000 < pt < 50.000){res.first=0.98613; res.second=0.00272;}
-    if(50.000 < pt < 100.000){res.first=0.98653; res.second=0.00364;}
-    if(100.000 < pt < 200.000){res.first=0.99782; res.second=0.01202;}
-    if(200.000 < pt < 500.000){res.first=1.04281; res.second=0.02852;}
-    }
-    if(-1.566 < eta < -1.444){
-    if(10.000 < pt < 20.000){res.first=1.00000; res.second=1.00000;}
-    if(20.000 < pt < 35.000){res.first=1.00000; res.second=1.00000;}
-    if(35.000 < pt < 50.000){res.first=1.00000; res.second=1.00000;}
-    if(50.000 < pt < 100.000){res.first=1.00000; res.second=1.00000;}
-    if(100.000 < pt < 200.000){res.first=1.00000; res.second=1.00000;}
-    if(200.000 < pt < 500.000){res.first=1.00000; res.second=1.00000;}
-    }
-    if(-1.444 < eta < -0.800){
-    if(10.000 < pt < 20.000){res.first=1.01575; res.second=0.01859;}
-    if(20.000 < pt < 35.000){res.first=0.95845; res.second=0.01349;}
-    if(35.000 < pt < 50.000){res.first=0.96479; res.second=0.00250;}
-    if(50.000 < pt < 100.000){res.first=0.96622; res.second=0.00568;}
-    if(100.000 < pt < 200.000){res.first=1.00219; res.second=0.01023;}
-    if(200.000 < pt < 500.000){res.first=1.00538; res.second=0.02020;}
-    }
-    if(-0.800 < eta < 0.000){
-    if(10.000 < pt < 20.000){res.first=0.97070; res.second=0.03407;}
-    if(20.000 < pt < 35.000){res.first=0.96735; res.second=0.01544;}
-    if(35.000 < pt < 50.000){res.first=0.96868; res.second=0.00246;}
-    if(50.000 < pt < 100.000){res.first=0.97098; res.second=0.00344;}
-    if(100.000 < pt < 200.000){res.first=0.99022; res.second=0.01016;}
-    if(200.000 < pt < 500.000){res.first=1.01300; res.second=0.01375;}
-    }
-    if(0.000 < eta < 0.800){
-    if(10.000 < pt < 20.000){res.first=0.98084; res.second=0.03407;}
-    if(20.000 < pt < 35.000){res.first=0.97290; res.second=0.01544;}
-    if(35.000 < pt < 50.000){res.first=0.97329; res.second=0.00246;}
-    if(50.000 < pt < 100.000){res.first=0.97321; res.second=0.00344;}
-    if(100.000 < pt < 200.000){res.first=1.00545; res.second=0.01016;}
-    if(200.000 < pt < 500.000){res.first=1.00965; res.second=0.01359;}
-    }
-    if(0.800 < eta < 1.444){
-    if(10.000 < pt < 20.000){res.first=1.00784; res.second=0.01866;}
-    if(20.000 < pt < 35.000){res.first=0.96503; res.second=0.01349;}
-    if(35.000 < pt < 50.000){res.first=0.96682; res.second=0.00250;}
-    if(50.000 < pt < 100.000){res.first=0.96939; res.second=0.00568;}
-    if(100.000 < pt < 200.000){res.first=1.00548; res.second=0.01023;}
-    if(200.000 < pt < 500.000){res.first=1.01190; res.second=0.02022;}
-    }
-    if(1.444 < eta < 1.566){
-    if(10.000 < pt < 20.000){res.first=1.00000; res.second=1.00000;}
-    if(20.000 < pt < 35.000){res.first=1.00000; res.second=1.00000;}
-    if(35.000 < pt < 50.000){res.first=1.00000; res.second=1.00000;}
-    if(50.000 < pt < 100.000){res.first=1.00000; res.second=1.00000;}
-    if(100.000 < pt < 200.000){res.first=1.00000; res.second=1.00000;}
-    if(200.000 < pt < 500.000){res.first=1.00000; res.second=1.00000;}
-    }
-    if(1.566 < eta < 2.000){
-    if(10.000 < pt < 20.000){res.first=1.00163; res.second=0.01858;}
-    if(20.000 < pt < 35.000){res.first=0.97510; res.second=0.01316;}
-    if(35.000 < pt < 50.000){res.first=0.98028; res.second=0.00272;}
-    if(50.000 < pt < 100.000){res.first=0.97980; res.second=0.00364;}
-    if(100.000 < pt < 200.000){res.first=0.99672; res.second=0.01202;}
-    if(200.000 < pt < 500.000){res.first=1.03452; res.second=0.02927;}
-    }
-    if(2.000 < eta < 2.500){
-    if(10.000 < pt < 20.000){res.first=1.03565; res.second=0.02460;}
-    if(20.000 < pt < 35.000){res.first=0.98868; res.second=0.01506;}
-    if(35.000 < pt < 50.000){res.first=0.98526; res.second=0.00330;}
-    if(50.000 < pt < 100.000){res.first=0.98012; res.second=0.00426;}
-    if(100.000 < pt < 200.000){res.first=0.98546; res.second=0.01280;}
-    if(200.000 < pt < 500.000){res.first=0.93375; res.second=0.05230;}
-    }
+if(10.000 < pt < 20.000){res.first=1.03971; res.second=0.01511;}
+if(20.000 < pt < 35.000){res.first=1.01590; res.second=0.01629;}
+if(35.000 < pt < 50.000){res.first=1.00884; res.second=0.00422;}
+if(50.000 < pt < 100.000){res.first=1.00361; res.second=0.00472;}
+if(100.000 < pt < 500.000){res.first=1.02709; res.second=0.02213;}
+}
+if(-2.000 < eta < -1.566){
+if(10.000 < pt < 20.000){res.first=1.02044; res.second=0.02424;}
+if(20.000 < pt < 35.000){res.first=0.99732; res.second=0.01245;}
+if(35.000 < pt < 50.000){res.first=1.00120; res.second=0.00305;}
+if(50.000 < pt < 100.000){res.first=1.00348; res.second=0.00421;}
+if(100.000 < pt < 500.000){res.first=1.02461; res.second=0.01406;}
+}
+if(-1.566 < eta < -1.444){
+if(10.000 < pt < 20.000){res.first=1.00000; res.second=1.00000;}
+if(20.000 < pt < 35.000){res.first=1.00000; res.second=1.00000;}
+if(35.000 < pt < 50.000){res.first=1.00000; res.second=1.00000;}
+if(50.000 < pt < 100.000){res.first=1.00000; res.second=1.00000;}
+if(100.000 < pt < 500.000){res.first=1.00000; res.second=1.00000;}
+}
+if(-1.444 < eta < -0.800){
+if(10.000 < pt < 20.000){res.first=1.00361; res.second=0.02878;}
+if(20.000 < pt < 35.000){res.first=0.98319; res.second=0.01444;}
+if(35.000 < pt < 50.000){res.first=0.98221; res.second=0.00404;}
+if(50.000 < pt < 100.000){res.first=0.98286; res.second=0.00525;}
+if(100.000 < pt < 500.000){res.first=1.00110; res.second=0.00979;}
+}
+if(-0.800 < eta < 0.000){
+if(10.000 < pt < 20.000){res.first=0.95841; res.second=0.02270;}
+if(20.000 < pt < 35.000){res.first=0.96477; res.second=0.01379;}
+if(35.000 < pt < 50.000){res.first=0.97316; res.second=0.00262;}
+if(50.000 < pt < 100.000){res.first=0.97194; res.second=0.00232;}
+if(100.000 < pt < 500.000){res.first=1.00329; res.second=0.00818;}
+}
+if(0.000 < eta < 0.800){
+if(10.000 < pt < 20.000){res.first=0.96552; res.second=0.02270;}
+if(20.000 < pt < 35.000){res.first=0.98505; res.second=0.01379;}
+if(35.000 < pt < 50.000){res.first=0.98593; res.second=0.00262;}
+if(50.000 < pt < 100.000){res.first=0.98309; res.second=0.00232;}
+if(100.000 < pt < 500.000){res.first=1.00993; res.second=0.00818;}
+}
+if(0.800 < eta < 1.444){
+if(10.000 < pt < 20.000){res.first=1.00000; res.second=0.02845;}
+if(20.000 < pt < 35.000){res.first=0.98590; res.second=0.01444;}
+if(35.000 < pt < 50.000){res.first=0.98804; res.second=0.00404;}
+if(50.000 < pt < 100.000){res.first=0.98624; res.second=0.00525;}
+if(100.000 < pt < 500.000){res.first=1.01004; res.second=0.00979;}
+}
+if(1.444 < eta < 1.566){
+if(10.000 < pt < 20.000){res.first=1.00000; res.second=1.00000;}
+if(20.000 < pt < 35.000){res.first=1.00000; res.second=1.00000;}
+if(35.000 < pt < 50.000){res.first=1.00000; res.second=1.00000;}
+if(50.000 < pt < 100.000){res.first=1.00000; res.second=1.00000;}
+if(100.000 < pt < 500.000){res.first=1.00000; res.second=1.00000;}
+}
+if(1.566 < eta < 2.000){
+if(10.000 < pt < 20.000){res.first=1.02426; res.second=0.02424;}
+if(20.000 < pt < 35.000){res.first=0.98780; res.second=0.01245;}
+if(35.000 < pt < 50.000){res.first=0.99522; res.second=0.00305;}
+if(50.000 < pt < 100.000){res.first=0.99191; res.second=0.00421;}
+if(100.000 < pt < 500.000){res.first=0.99453; res.second=0.01389;}
+}
+if(2.000 < eta < 2.500){
+if(10.000 < pt < 20.000){res.first=1.02269; res.second=0.01511;}
+if(20.000 < pt < 35.000){res.first=1.01143; res.second=0.01629;}
+if(35.000 < pt < 50.000){res.first=0.99624; res.second=0.00422;}
+if(50.000 < pt < 100.000){res.first=0.98808; res.second=0.00472;}
+if(100.000 < pt < 500.000){res.first=1.00676; res.second=0.02196;}
+}
   }
   // Muons SFs
-  // https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2017
-  // https://gitlab.cern.ch/cms-muonPOG/MuonReferenceEfficiencies/-/tree/master/EfficienciesStudies/UL2017/rootfiles
-  // Check TTbarSelectionProducer.cc for which muon ID and iso is being used.
   else if (abs(id)==13){
-    if(15.000 < pt < 20.000){
-    if(0.000 < fabs(eta) < 0.900){res.first=0.98941; res.second=0.00210;}
-    if(0.900 < fabs(eta) < 1.200){res.first=0.98686; res.second=0.00385;}
-    if(1.200 < fabs(eta) < 2.100){res.first=0.99123; res.second=0.00138;}
-    if(2.100 < fabs(eta) < 2.400){res.first=0.98001; res.second=0.00356;}
-    }
-    if(20.000 < pt < 25.000){
-    if(0.000 < fabs(eta) < 0.900){res.first=0.99139; res.second=0.00219;}
-    if(0.900 < fabs(eta) < 1.200){res.first=0.98599; res.second=0.00181;}
-    if(1.200 < fabs(eta) < 2.100){res.first=0.99147; res.second=0.00115;}
-    if(2.100 < fabs(eta) < 2.400){res.first=0.97623; res.second=0.00492;}
-    }
-    if(25.000 < pt < 30.000){
-    if(0.000 < fabs(eta) < 0.900){res.first=0.99143; res.second=0.00094;}
-    if(0.900 < fabs(eta) < 1.200){res.first=0.98399; res.second=0.00146;}
-    if(1.200 < fabs(eta) < 2.100){res.first=0.99118; res.second=0.00056;}
-    if(2.100 < fabs(eta) < 2.400){res.first=0.97359; res.second=0.00127;}
-    }
-    if(30.000 < pt < 40.000){
-    if(0.000 < fabs(eta) < 0.900){res.first=0.99138; res.second=0.00053;}
-    if(0.900 < fabs(eta) < 1.200){res.first=0.98382; res.second=0.00215;}
-    if(1.200 < fabs(eta) < 2.100){res.first=0.99080; res.second=0.00022;}
-    if(2.100 < fabs(eta) < 2.400){res.first=0.97396; res.second=0.00062;}
-    }
-    if(40.000 < pt < 50.000){
-    if(0.000 < fabs(eta) < 0.900){res.first=0.99144; res.second=0.00251;}
-    if(0.900 < fabs(eta) < 1.200){res.first=0.98422; res.second=0.00037;}
-    if(1.200 < fabs(eta) < 2.100){res.first=0.98999; res.second=0.00022;}
-    if(2.100 < fabs(eta) < 2.400){res.first=0.97389; res.second=0.00077;}
-    }
-    if(50.000 < pt < 60.000){
-    if(0.000 < fabs(eta) < 0.900){res.first=0.99169; res.second=0.00050;}
-    if(0.900 < fabs(eta) < 1.200){res.first=0.98300; res.second=0.00090;}
-    if(1.200 < fabs(eta) < 2.100){res.first=0.99078; res.second=0.01011;}
-    if(2.100 < fabs(eta) < 2.400){res.first=0.97371; res.second=0.00202;}
-    }
-    if(60.000 < pt < 120.000){
-    if(0.000 < fabs(eta) < 0.900){res.first=0.99058; res.second=0.00076;}
-    if(0.900 < fabs(eta) < 1.200){res.first=0.98169; res.second=0.00630;}
-    if(1.200 < fabs(eta) < 2.100){res.first=0.98864; res.second=0.00085;}
-    if(2.100 < fabs(eta) < 2.400){res.first=0.96775; res.second=0.00342;}
-    }
+    if(0.000 < fabs(eta) < 0.900){
+if(15.000 < pt < 20.000){res.first=0.98943; res.second=0.00482;}
+if(20.000 < pt < 25.000){res.first=0.98763; res.second=0.00312;}
+if(25.000 < pt < 30.000){res.first=0.98792; res.second=0.00323;}
+if(30.000 < pt < 40.000){res.first=0.98650; res.second=0.00299;}
+if(40.000 < pt < 50.000){res.first=0.98673; res.second=0.00310;}
+if(50.000 < pt < 60.000){res.first=0.98517; res.second=0.00318;}
+if(60.000 < pt < 120.000){res.first=0.98463; res.second=0.00250;}
+}
+if(0.900 < fabs(eta) < 1.200){
+if(15.000 < pt < 20.000){res.first=0.97899; res.second=0.00509;}
+if(20.000 < pt < 25.000){res.first=0.97658; res.second=0.00496;}
+if(25.000 < pt < 30.000){res.first=0.98151; res.second=0.00474;}
+if(30.000 < pt < 40.000){res.first=0.97872; res.second=0.00398;}
+if(40.000 < pt < 50.000){res.first=0.97925; res.second=0.00325;}
+if(50.000 < pt < 60.000){res.first=0.97903; res.second=0.00302;}
+if(60.000 < pt < 120.000){res.first=0.97832; res.second=0.00230;}
+}
+if(1.200 < fabs(eta) < 2.100){
+if(15.000 < pt < 20.000){res.first=0.99012; res.second=0.00532;}
+if(20.000 < pt < 25.000){res.first=0.98945; res.second=0.00414;}
+if(25.000 < pt < 30.000){res.first=0.99097; res.second=0.00433;}
+if(30.000 < pt < 40.000){res.first=0.99050; res.second=0.00392;}
+if(40.000 < pt < 50.000){res.first=0.99152; res.second=0.00306;}
+if(50.000 < pt < 60.000){res.first=0.99063; res.second=0.00302;}
+if(60.000 < pt < 120.000){res.first=0.99049; res.second=0.00322;}
+}
+if(2.100 < fabs(eta) < 2.400){
+if(15.000 < pt < 20.000){res.first=0.97577; res.second=0.00702;}
+if(20.000 < pt < 25.000){res.first=0.97531; res.second=0.00562;}
+if(25.000 < pt < 30.000){res.first=0.97610; res.second=0.00553;}
+if(30.000 < pt < 40.000){res.first=0.97594; res.second=0.00475;}
+if(40.000 < pt < 50.000){res.first=0.97642; res.second=0.00412;}
+if(50.000 < pt < 60.000){res.first=0.97201; res.second=0.00717;}
+if(60.000 < pt < 120.000){res.first=0.96955; res.second=0.01196;}
+}
   }
   else{
     cout << "[getLeptonIDScaleFactor] Warning: Lepton neither electron nor muon!" << endl;
@@ -1186,217 +1257,135 @@ std::pair<float,float> TTbarEventAnalysis::getLeptonIDScaleFactor(int id,float p
   return res;
 }
 
-
 // Electron Reco SF's
 std::pair<float,float> TTbarEventAnalysis::getElectronRECOScaleFactor(int id,float pt,float eta){
   std::pair<float,float>res(1.0,0.0);
-  //https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018
   if(-2.500 < eta < -2.000){
-    if(20.000 < pt < 45.000){res.first=0.98354; res.second=0.00359;}
-    if(45.000 < pt < 75.000){res.first=0.98671; res.second=0.00533;}
-    if(75.000 < pt < 100.000){res.first=0.99693; res.second=0.00851;}
-    if(100.000 < pt < 500.000){res.first=0.99898; res.second=0.00748;}
-  }
-  if(-2.000 < eta < -1.566){
-    if(20.000 < pt < 45.000){res.first=0.98872; res.second=0.00340;}
-    if(45.000 < pt < 75.000){res.first=0.98879; res.second=0.00391;}
-    if(75.000 < pt < 100.000){res.first=0.99390; res.second=0.00477;}
-    if(100.000 < pt < 500.000){res.first=1.00713; res.second=0.00706;}
-  }
-  if(-1.566 < eta < -1.444){
-    if(20.000 < pt < 45.000){res.first=0.97544; res.second=0.00466;}
-    if(45.000 < pt < 75.000){res.first=0.96592; res.second=0.00874;}
-    if(75.000 < pt < 100.000){res.first=1.03384; res.second=0.01907;}
-    if(100.000 < pt < 500.000){res.first=1.03080; res.second=0.02372;}
-  }
-  if(-1.444 < eta < -1.000){
-    if(20.000 < pt < 45.000){res.first=0.98238; res.second=0.00316;}
-    if(45.000 < pt < 75.000){res.first=0.98354; res.second=0.00554;}
-    if(75.000 < pt < 100.000){res.first=0.99793; res.second=0.00815;}
-    if(100.000 < pt < 500.000){res.first=0.99383; res.second=0.00756;}
-  }
-  if(-1.000 < eta < -0.500){
-    if(20.000 < pt < 45.000){res.first=0.98868; res.second=0.00366;}
-    if(45.000 < pt < 75.000){res.first=0.98774; res.second=0.00621;}
-    if(75.000 < pt < 100.000){res.first=0.98973; res.second=0.00802;}
-    if(100.000 < pt < 500.000){res.first=0.99591; res.second=0.00531;}
-  }
-  if(-0.500 < eta < 0.000){
-    if(20.000 < pt < 45.000){res.first=0.98657; res.second=0.00381;}
-    if(45.000 < pt < 75.000){res.first=0.98769; res.second=0.00625;}
-    if(75.000 < pt < 100.000){res.first=0.98975; res.second=0.00397;}
-    if(100.000 < pt < 500.000){res.first=0.99591; res.second=0.00639;}
-  }
-  if(0.000 < eta < 0.500){
-    if(20.000 < pt < 45.000){res.first=0.98646; res.second=0.00381;}
-    if(45.000 < pt < 75.000){res.first=0.98551; res.second=0.00625;}
-    if(75.000 < pt < 100.000){res.first=0.98975; res.second=0.00397;}
-    if(100.000 < pt < 500.000){res.first=0.99591; res.second=0.00639;}
-  }
-  if(0.500 < eta < 1.000){
-    if(20.000 < pt < 45.000){res.first=0.98753; res.second=0.00366;}
-    if(45.000 < pt < 75.000){res.first=0.98861; res.second=0.00621;}
-    if(75.000 < pt < 100.000){res.first=0.98973; res.second=0.00802;}
-    if(100.000 < pt < 500.000){res.first=0.99591; res.second=0.00531;}
-  }
-  if(1.000 < eta < 1.444){
-    if(20.000 < pt < 45.000){res.first=0.97910; res.second=0.00316;}
-    if(45.000 < pt < 75.000){res.first=0.98031; res.second=0.00554;}
-    if(75.000 < pt < 100.000){res.first=0.99793; res.second=0.00815;}
-    if(100.000 < pt < 500.000){res.first=0.99383; res.second=0.00756;}
-  }
-  if(1.444 < eta < 1.566){
-    if(20.000 < pt < 45.000){res.first=0.98701; res.second=0.00466;}
-    if(45.000 < pt < 75.000){res.first=0.97419; res.second=0.00874;}
-    if(75.000 < pt < 100.000){res.first=1.03384; res.second=0.01907;}
-    if(100.000 < pt < 500.000){res.first=1.03080; res.second=0.02372;}
-  }
-  if(1.566 < eta < 2.000){
-    if(20.000 < pt < 45.000){res.first=0.98770; res.second=0.00340;}
-    if(45.000 < pt < 75.000){res.first=0.98879; res.second=0.00391;}
-    if(75.000 < pt < 100.000){res.first=0.99390; res.second=0.00477;}
-    if(100.000 < pt < 500.000){res.first=1.00713; res.second=0.00706;}
-  }
-    if(2.000 < eta < 2.500){
-    if(20.000 < pt < 45.000){res.first=0.98668; res.second=0.00359;}
-    if(45.000 < pt < 75.000){res.first=0.98879; res.second=0.00533;}
-    if(75.000 < pt < 100.000){res.first=0.99693; res.second=0.00851;}
-    if(100.000 < pt < 500.000){res.first=0.99898; res.second=0.00748;}
-  }
+if(20.000 < pt < 45.000){res.first=0.99679; res.second=0.00338;}
+if(45.000 < pt < 75.000){res.first=0.99159; res.second=0.00606;}
+if(75.000 < pt < 100.000){res.first=0.98837; res.second=0.01406;}
+if(100.000 < pt < 500.000){res.first=1.00958; res.second=0.01756;}
+}
+if(-2.000 < eta < -1.566){
+if(20.000 < pt < 45.000){res.first=0.99272; res.second=0.00315;}
+if(45.000 < pt < 75.000){res.first=0.99277; res.second=0.00218;}
+if(75.000 < pt < 100.000){res.first=0.98463; res.second=0.02270;}
+if(100.000 < pt < 500.000){res.first=1.01638; res.second=0.00862;}
+}
+if(-1.566 < eta < -1.444){
+if(20.000 < pt < 45.000){res.first=0.95760; res.second=0.01777;}
+if(45.000 < pt < 75.000){res.first=0.96216; res.second=0.00619;}
+if(75.000 < pt < 100.000){res.first=1.01213; res.second=0.03077;}
+if(100.000 < pt < 500.000){res.first=1.01438; res.second=0.02680;}
+}
+if(-1.444 < eta < -1.000){
+if(20.000 < pt < 45.000){res.first=0.98560; res.second=0.00224;}
+if(45.000 < pt < 75.000){res.first=0.98672; res.second=0.00210;}
+if(75.000 < pt < 100.000){res.first=0.98278; res.second=0.00934;}
+if(100.000 < pt < 500.000){res.first=0.97982; res.second=0.00597;}
+}
+if(-1.000 < eta < -0.500){
+if(20.000 < pt < 45.000){res.first=0.97945; res.second=0.00262;}
+if(45.000 < pt < 75.000){res.first=0.98161; res.second=0.00310;}
+if(75.000 < pt < 100.000){res.first=0.97660; res.second=0.01485;}
+if(100.000 < pt < 500.000){res.first=0.98486; res.second=0.00677;}
+}
+if(-0.500 < eta < 0.000){
+if(20.000 < pt < 45.000){res.first=0.97526; res.second=0.00258;}
+if(45.000 < pt < 75.000){res.first=0.97953; res.second=0.00393;}
+if(75.000 < pt < 100.000){res.first=0.98774; res.second=0.00722;}
+if(100.000 < pt < 500.000){res.first=0.98987; res.second=0.00687;}
+}
+if(0.000 < eta < 0.500){
+if(20.000 < pt < 45.000){res.first=0.98660; res.second=0.00258;}
+if(45.000 < pt < 75.000){res.first=0.98772; res.second=0.00393;}
+if(75.000 < pt < 100.000){res.first=0.98774; res.second=0.00722;}
+if(100.000 < pt < 500.000){res.first=0.98987; res.second=0.00687;}
+}
+if(0.500 < eta < 1.000){
+if(20.000 < pt < 45.000){res.first=0.98770; res.second=0.00262;}
+if(45.000 < pt < 75.000){res.first=0.98778; res.second=0.00310;}
+if(75.000 < pt < 100.000){res.first=0.97660; res.second=0.01485;}
+if(100.000 < pt < 500.000){res.first=0.98486; res.second=0.00677;}
+}
+if(1.000 < eta < 1.444){
+if(20.000 < pt < 45.000){res.first=0.98972; res.second=0.00224;}
+if(45.000 < pt < 75.000){res.first=0.98878; res.second=0.00210;}
+if(75.000 < pt < 100.000){res.first=0.98278; res.second=0.00934;}
+if(100.000 < pt < 500.000){res.first=0.97982; res.second=0.00597;}
+}
+if(1.444 < eta < 1.566){
+if(20.000 < pt < 45.000){res.first=0.97156; res.second=0.01777;}
+if(45.000 < pt < 75.000){res.first=0.97514; res.second=0.00619;}
+if(75.000 < pt < 100.000){res.first=1.01213; res.second=0.03077;}
+if(100.000 < pt < 500.000){res.first=1.01438; res.second=0.02680;}
+}
+if(1.566 < eta < 2.000){
+if(20.000 < pt < 45.000){res.first=0.99380; res.second=0.00315;}
+if(45.000 < pt < 75.000){res.first=0.99076; res.second=0.00218;}
+if(75.000 < pt < 100.000){res.first=0.98463; res.second=0.02270;}
+if(100.000 < pt < 500.000){res.first=1.01638; res.second=0.00862;}
+}
+if(2.000 < eta < 2.500){
+if(20.000 < pt < 45.000){res.first=1.00000; res.second=0.00338;}
+if(45.000 < pt < 75.000){res.first=0.99254; res.second=0.00606;}
+if(75.000 < pt < 100.000){res.first=0.98837; res.second=0.01406;}
+if(100.000 < pt < 500.000){res.first=1.00958; res.second=0.01756;}
+}
   return res;
 }
 
 // Muon Isolation SF's
 std::pair<float,float> TTbarEventAnalysis::getMuonISOScaleFactor(int id,float pt,float eta){
   std::pair<float,float>res(1.0,0.0);
-  //https://twiki.cern.ch/twiki/bin/viewauth/CMS/MuonReferenceEffsRun2Legacy
-  //https://gitlab.cern.ch/cms-muonPOG/MuonReferenceEfficiencies/-/tree/master/EfficienciesStudies/UL2017/rootfiles
   if(abs(id)==13){
-    if(15.000 < pt < 20.000){
-      if(0.000 < fabs(eta) < 0.900){res.first=0.98116; res.second=0.00626;}
-      if(0.900 < fabs(eta) < 1.200){res.first=0.99536; res.second=0.00962;}
-      if(1.200 < fabs(eta) < 2.100){res.first=1.04475; res.second=0.00424;}
-      if(2.100 < fabs(eta) < 2.400){res.first=1.08855; res.second=0.00658;}
-    }
-    if(20.000 < pt < 25.000){
-      if(0.000 < fabs(eta) < 0.900){res.first=0.98760; res.second=0.00302;}
-      if(0.900 < fabs(eta) < 1.200){res.first=0.98642; res.second=0.00506;}
-      if(1.200 < fabs(eta) < 2.100){res.first=1.02874; res.second=0.00238;}
-      if(2.100 < fabs(eta) < 2.400){res.first=1.06533; res.second=0.00389;}
-    }
-    if(25.000 < pt < 30.000){
-      if(0.000 < fabs(eta) < 0.900){res.first=0.98872; res.second=0.00144;}
-      if(0.900 < fabs(eta) < 1.200){res.first=0.99055; res.second=0.00259;}
-      if(1.200 < fabs(eta) < 2.100){res.first=1.02007; res.second=0.00126;}
-      if(2.100 < fabs(eta) < 2.400){res.first=1.04353; res.second=0.00213;}
-    }
-    if(30.000 < pt < 40.000){
-      if(0.000 < fabs(eta) < 0.900){res.first=0.99354; res.second=0.00041;}
-      if(0.900 < fabs(eta) < 1.200){res.first=0.99358; res.second=0.00081;}
-      if(1.200 < fabs(eta) < 2.100){res.first=1.01033; res.second=0.00042;}
-      if(2.100 < fabs(eta) < 2.400){res.first=1.02522; res.second=0.00076;}
-    }
-    if(40.000 < pt < 50.000){
-      if(0.000 < fabs(eta) < 0.900){res.first=0.99656; res.second=0.00027;}
-      if(0.900 < fabs(eta) < 1.200){res.first=0.99641; res.second=0.00039;}
-      if(1.200 < fabs(eta) < 2.100){res.first=1.00519; res.second=0.00023;}
-      if(2.100 < fabs(eta) < 2.400){res.first=1.01248; res.second=0.00049;}
-    }
-    if(50.000 < pt < 60.000){
-      if(0.000 < fabs(eta) < 0.900){res.first=0.99727; res.second=0.00038;}
-      if(0.900 < fabs(eta) < 1.200){res.first=0.99725; res.second=0.00071;}
-      if(1.200 < fabs(eta) < 2.100){res.first=1.00285; res.second=0.00105;}
-      if(2.100 < fabs(eta) < 2.400){res.first=1.00710; res.second=0.00096;}
-    }
-    if(60.000 < pt < 120.000){
-      if(0.000 < fabs(eta) < 0.900){res.first=0.99833; res.second=0.00051;}
-      if(0.900 < fabs(eta) < 1.200){res.first=0.99920; res.second=0.00114;}
-      if(1.200 < fabs(eta) < 2.100){res.first=1.00198; res.second=0.00082;}
-      if(2.100 < fabs(eta) < 2.400){res.first=1.00459; res.second=0.00155;}
-    }
+    if(0.000 < fabs(eta) < 0.900){
+if(15.000 < pt < 20.000){res.first=0.98966; res.second=0.01192;}
+if(20.000 < pt < 25.000){res.first=0.99483; res.second=0.01022;}
+if(25.000 < pt < 30.000){res.first=0.99151; res.second=0.00601;}
+if(30.000 < pt < 40.000){res.first=0.99560; res.second=0.00089;}
+if(40.000 < pt < 50.000){res.first=0.99698; res.second=0.00043;}
+if(50.000 < pt < 60.000){res.first=0.99720; res.second=0.00048;}
+if(60.000 < pt < 120.000){res.first=0.99902; res.second=0.00055;}
+}
+if(0.900 < fabs(eta) < 1.200){
+if(15.000 < pt < 20.000){res.first=1.00199; res.second=0.01143;}
+if(20.000 < pt < 25.000){res.first=1.00037; res.second=0.00814;}
+if(25.000 < pt < 30.000){res.first=1.00337; res.second=0.00717;}
+if(30.000 < pt < 40.000){res.first=1.00055; res.second=0.00084;}
+if(40.000 < pt < 50.000){res.first=0.99795; res.second=0.00041;}
+if(50.000 < pt < 60.000){res.first=0.99961; res.second=0.00105;}
+if(60.000 < pt < 120.000){res.first=1.00004; res.second=0.00099;}
+}
+if(1.200 < fabs(eta) < 2.100){
+if(15.000 < pt < 20.000){res.first=1.00330; res.second=0.00679;}
+if(20.000 < pt < 25.000){res.first=1.00705; res.second=0.00581;}
+if(25.000 < pt < 30.000){res.first=1.00517; res.second=0.00428;}
+if(30.000 < pt < 40.000){res.first=1.00159; res.second=0.00116;}
+if(40.000 < pt < 50.000){res.first=0.99983; res.second=0.00019;}
+if(50.000 < pt < 60.000){res.first=0.99887; res.second=0.00047;}
+if(60.000 < pt < 120.000){res.first=0.99988; res.second=0.00054;}
+}
+if(2.100 < fabs(eta) < 2.400){
+if(15.000 < pt < 20.000){res.first=1.01378; res.second=0.00593;}
+if(20.000 < pt < 25.000){res.first=1.01079; res.second=0.00433;}
+if(25.000 < pt < 30.000){res.first=1.00428; res.second=0.00296;}
+if(30.000 < pt < 40.000){res.first=1.00315; res.second=0.00091;}
+if(40.000 < pt < 50.000){res.first=1.00109; res.second=0.00051;}
+if(50.000 < pt < 60.000){res.first=1.00107; res.second=0.00122;}
+if(60.000 < pt < 120.000){res.first=1.00079; res.second=0.00128;}
+}
   }
   return res;
 }
 
-// Apply JER core resolution scale factors and smearing
-// Rescale factor should be applied to the corrected 4-momentum of reconstructed jets in simulation.
-// https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution
-std::vector<float> TTbarEventAnalysis::getJERVariations(float pt, float eta, float genjpt, float JER_sf, float JER_sf_up, float JER_sf_down, float JER_mc){
-  std::vector<float> res(3,1.0);
-  float rescale_factor = 1.;
-  float rescale_factor_up = 1.;
-  float rescale_factor_down = 1.;
-  // Temporarily using genjpt == -1 to signify if no good match found in genjets for reco jet
-  // Ideally, this would be dR(recojet,genjet) < Rcone/2 : genjet_4vec.DeltaR(jp4)< 0.2
-  // 4vec not in BTA jet variables (in nano analyser chain though).
-  if ( (TMath::Abs(pt-genjpt) < 3*JER_mc*pt) && genjpt!=-1 ){
-    // Scaling method
-    //cout << "Scaling method smearing" << endl;
-    rescale_factor = 1.0 + ( (JER_sf-1.0) * ((pt-genjpt)/pt) );
-    rescale_factor_up = 1.0 + ( (JER_sf_up-1.0) * ((pt-genjpt)/pt) );
-    rescale_factor_down = 1.0 + ( (JER_sf_down-1.0) * ((pt-genjpt)/pt) );
-  }
-  else{
-    // Stochastic method
-    //cout << "Stochastic method smearing" << endl;
-    const int nrolls=10000;
-    const int nstars=100;
-    int p[10]={};
-    std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0.,JER_mc);
-    /*for (int i=0; i<nrolls; ++i) {
-      double number = distribution(generator);
-      if ((number>=-2.0)&&(number<2.0)) ++p[int(number)];
-    }
-    std::cout << "normal_distribution (-1.0,1.0):" << std::endl;
-    vector<string> bin_labels;
-    bin_labels.at(0) = "-1.0:-0.8"
-    bin_labels.at(1) = "-0.8:-0.6"
-    bin_labels.at(2) = "-0.6:-0.4"
-    bin_labels.at(3) = "-0.4:-0.2"
-    bin_labels.at(4) = "-0.2:0.0"
-    bin_labels.at(5) = "0.0:0.2"
-    bin_labels.at(6) = "0.2:0.4"
-    bin_labels.at(7) = "0.4:0.6"
-    bin_labels.at(8) = "0.6:0.8"
-    bin_labels.at(9) = "0.8:0.1"
-    for (int i=0; i<10; ++i) {
-      std::cout << bin_labels.at(i) << ": ";
-      std::cout << std::string(p[i]*nstars/nrolls,'*') << std::endl;
-    }*/
-    double random_number = distribution(generator);
-    rescale_factor = 1 + random_number*sqrt( TMath::Max((Float_t)0., (Float_t)pow(JER_sf,2)-1) );
-    rescale_factor_up = 1 + random_number*sqrt( TMath::Max((Float_t)0., (Float_t)pow(JER_sf_up,2)-1) );
-    rescale_factor_down = 1 + random_number*sqrt( TMath::Max((Float_t)0., (Float_t)pow(JER_sf_down,2)-1) );
-  }
-  //cout << "rescale factor (nominal/up/down): " << rescale_factor << "/" << rescale_factor_up << "/" << rescale_factor_down << endl;
-  float smeared_jet_pT = TMath::Max( (Float_t)0., (Float_t)pt*rescale_factor);
-  float smeared_jet_pT_up = TMath::Max( (Float_t)0., (Float_t)pt*rescale_factor);
-  float smeared_jet_pT_down = TMath::Max( (Float_t)0., (Float_t)pt*rescale_factor);
-  res[0] = smeared_jet_pT;
-  res[1] = smeared_jet_pT_up;
-  res[2] = smeared_jet_pT_down;
-  //cout << "JER smearing JER SF (nominal/up/down): " << res[0] << "/" << res[1] << "/" << res[2] << endl;
-  return res;
-}
-
-
-//
-void TTbarEventAnalysis::finalizeOutput()
+void TTbarEventAnalysis::finalizeOutput(TH1F *normWgt)
 {
-  //dump results to file
   outF_->cd();
-
-  //pileup weighting screws up a bit normalization - fix it a posteriori
-  float puwgtSF(histos_["puwgtnorm" ]->GetBinContent(1)/histos_["puwgtnorm" ]->GetBinContent(2));
-
   for(std::map<TString,TH1F *>::iterator it = histos_.begin(); it != histos_.end(); it++){
-    if(it->first!="puwgtnorm")
-    it->second->Scale(puwgtSF);
     it->second->Write();
   }
   kinTree_->Write();
-  //evVarTree_->Write();
   if(ftmTree_) ftmTree_->Write();
   outF_->Close();
 }

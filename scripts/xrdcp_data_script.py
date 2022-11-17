@@ -25,15 +25,13 @@ redirector_name = "root://xrootd-cms.infn.it//"
 os.popen('export XRD_NETWORKSTACK=IPv4')
 
 # Original directory name on EOS and subsequent directories for individual samples.
-original_directory = '/store/group/phys_btag/Commissioning/TTbar/TTbar_UL18/'
+original_directory = '/store/group/phys_btag/Commissioning/TTbar/TTbar_UL16_v3/'
 original_subdir_list = [
 'MuonEG'
-#'DoubleEG'
-#'DoubleMuon'
 ]
 
 # EOS directory with new structure to store output (easier for runTTbarAnalysis packages to use).
-new_directory = '/eos/cms/store/group/phys_btag/Commissioning/TTbar/TTbar_UL18_StructuredDir/'
+new_directory = '/eos/cms/store/group/phys_btag/Commissioning/TTbar/TTbar_UL16_StructuredDir_v3/'
 # Make the new EOS directory.
 eos_mkdir_cmd = 'eos mkdir '
 temp_eos_mkdir_cmd = eos_mkdir_cmd + new_directory
@@ -56,10 +54,11 @@ data_dir = temp_os_output.splitlines()
 # Can add or remove data directories from this list.
 
 data_dir = [
-'crab_crab_Data13TeV_MuonEG_UL18A',
-'crab_crab_Data13TeV_MuonEG_UL18B',
-'crab_crab_Data13TeV_MuonEG_UL18C',
-'crab_crab_Data13TeV_MuonEG_UL18D'
+'crab_crab_Data13TeV_MuonEG_Run2016B_v2_HIPM_vUL2016',
+'crab_crab_Data13TeV_MuonEG_Run2016C_HIPM_vUL2016',
+'crab_crab_Data13TeV_MuonEG_Run2016D_HIPM_vUL2016',
+'crab_crab_Data13TeV_MuonEG_Run2016E_HIPM_vUL2016',
+'crab_crab_Data13TeV_MuonEG_Run2016F_HIPM_vUL2016'
 ]
 
 # Loop over crab job output directories for data inside MuonEG directory.
@@ -72,19 +71,8 @@ for subdir_2 in data_dir:
     temp_eos_ls_cmd = eos_ls_cmd + temp_full_pathname
     temp_os_output = os.popen(temp_eos_ls_cmd).read()
 
-    #subdir_3 = "".join(temp_os_output.split())
-    #for subdir_3 in temp_os_output:
-    #    print 'subdir_3 : ' , subdir_3
-
-    #temp_full_pathname = os.path.join(temp_full_pathname,subdir_3)
-    #temp_eos_ls_cmd = eos_ls_cmd + temp_full_pathname
-
-    # WARNING: OK, in this subdirectory we (may) have two further directories.
-    #          Can split returned string using new line delimiter, into
-    #          an array of strings of directory names.
     temp_os_output = os.popen(temp_eos_ls_cmd).read()
     subdir_4 = temp_os_output.splitlines()
-    #print 'subdir_4: ' , subdir_4
 
     for temp_dir in subdir_4:
         temp_full_pathname_2 = os.path.join(temp_full_pathname,temp_dir)
@@ -102,9 +90,10 @@ for subdir_2 in data_dir:
                 command_line_arg1 = redirector_name + temp_full_path_to_file + '/' + temp_file
                 command_line_arg2 = new_directory + subdir_2 + "/" + temp_file
                 command_line = 'xrdcp ' + command_line_arg1 +  ' ' + command_line_arg2
-                if os.path.isfile(command_line_arg2):
-                    continue
                 print command_line
+                if os.path.isfile(command_line_arg2):
+                    print('Already copied, skipping!')
+                    continue
                 os.popen(command_line)
 # Increment counter so new directory name matches old directory name.
 sample_counter = sample_counter + 1
