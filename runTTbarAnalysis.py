@@ -108,6 +108,8 @@ def main():
     #only list
     onlyList=opt.only.split(',')
 
+    # gkole fix me or delete this part (26/10/2023)
+    # in nanoaod we have branch to read no of events, somehow need to read cross-section from input JSON
     #read normalization
     xsecWgts, integLumi = {}, {}
     cache='%s/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/.xsecweights.pck'%os.environ['CMSSW_BASE']
@@ -165,6 +167,11 @@ def main():
 
     task_list=list(set(task_list))
     print '%s jobs to run in %d parallel threads' % (len(task_list), opt.njobs)
+
+    print ("gkole on 11_Oct v0 type: %s and wgt: %d " % (type(wgt), wgt)) 
+    print (50*">")
+    print ("set wgt from pikle file to 1.0")
+    wgt = 1.0
 
     # Run the analysis jobs
     if opt.njobs == 0:

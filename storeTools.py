@@ -55,12 +55,14 @@ def produceNormalizationCache(samplesList,inDir,cache,normWgts,integLumi):
 
         input_list=getEOSlslist(directory=inDir+'/'+tag)
 
+        print ("gkole 0 input_list:  ", input_list)
+        print ("gkole 0 tag:  ", tag )
         fIn=ROOT.TFile.Open(input_list[0])
         tree=fIn.Get("btagana/ttree")
         nentries=tree.GetEntries()
         if nentries > 0:
             tree.GetEntry(0)
-            print("Process: %s, File: %s, Generator XS: %s" % (tag, input_list[0], getattr(tree, 'mcweight')))
+            print("Process: %s, File: %s, Generator XS: %s" % (tag, input_list[0], getattr(tree, 'ttbar_w')))
         fIn.Close()
 
         norigEvents=None
@@ -72,14 +74,14 @@ def produceNormalizationCache(samplesList,inDir,cache,normWgts,integLumi):
         # Combine all sub-samples for process and sum the weights
         for f in input_list:
             fIn=ROOT.TFile.Open(f)
-            #tree=fIn.Get("btagana/ttree")
-            #nentries=tree.GetEntries()
-            #print('nentries: ', nentries)
-            #if nentries > 0 and 'MC13TeV' in tag:
-            #    for entry in xrange(0,nentries):
-            #        tree.GetEntry(entry)
-            #        temp_mcweight = getattr(tree, 'mcweight')
-
+            tree=fIn.Get("btagana/ttree")
+            nentries=tree.GetEntries()
+            print('nentries: ', nentries)
+            if nentries > 0 and 'MC13TeV' in tag:
+                for entry in xrange(0,nentries):
+                    tree.GetEntry(entry)
+                    temp_mcweight = getattr(tree, 'ttbar_w')
+            '''
             if norigEvents is None:
                 # Clone and reset just the histogram integral, contents and error (ICE)
                 norigEvents=fIn.Get('ttbarselectionproducer/wgtcounter').Clone('normwgts')
@@ -102,10 +104,13 @@ def produceNormalizationCache(samplesList,inDir,cache,normWgts,integLumi):
                 norigEvents.SetBinError(xbin,0.)
         except:
             print 'No normalization histogram for ',tag
-        normWgts[tag]  = norigEvents
-        integLumi[tag] = 1./norigEvents.GetBinContent(1) if norigEvents else 0.
-        if norigEvents:
-            print('%s: 1/sum(LHEWeight) = %.10f' % (tag, normWgts[tag].GetBinContent(1)))
+            '''
+        # normWgts[tag]  = norigEvents
+        # integLumi[tag] = 1./norigEvents.GetBinContent(1) if norigEvents else 0.
+        normWgts[tag]  = temp_mcweight
+        integLumi[tag] = 1./temp_mcweight if temp_mcweight else 0.
+        if temp_mcweight:
+            print('%s: 1/sum(LHEWeight) = %.10f' % (tag, normWgts[tag]))
 
     #dump to file
     cachefile=open(cache,'w')
