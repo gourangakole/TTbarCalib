@@ -83,13 +83,14 @@ def main():
     #configuration
     usage = 'usage: %prog [options]'
     parser = optparse.OptionParser(usage)
-    parser.add_option('-j', '--json',        dest='json'  ,      help='json with list of files',      default=None,        type='string')
-    parser.add_option('-i', '--inDir',       dest='inDir',       help='input directory with files',   default=None,        type='string')
-    parser.add_option('-o', '--outDir',      dest='outDir',      help='output directory',             default='analysis',  type='string')
-    parser.add_option(      '--only',        dest='only',        help='process only matching (csv)',  default='',          type='string')
-    parser.add_option(      '--tmvaWgts',    dest='tmvaWgts',    help='tmva weights',                 default=None,        type='string')
-    parser.add_option(      '--dyScale',     dest='dyScale',     help='DY scale factor',              default=None,        type='string')
-    parser.add_option('-n', '--njobs',       dest='njobs',       help='# jobs to run in parallel',    default=0,           type='int')
+    parser.add_option('-j',   '--json',        dest='json'  ,      help='json with list of files',      default=None,        type='string')
+    parser.add_option('-i',   '--inDir',       dest='inDir',       help='input directory with files',   default=None,        type='string')
+    parser.add_option('-o',   '--outDir',      dest='outDir',      help='output directory',             default='analysis',  type='string')
+    parser.add_option(        '--only',        dest='only',        help='process only matching (csv)',  default='',          type='string')
+    parser.add_option(        '--tmvaWgts',    dest='tmvaWgts',    help='tmva weights',                 default=None,        type='string')
+    parser.add_option(        '--dyScale',     dest='dyScale',     help='DY scale factor',              default=None,        type='string')
+    parser.add_option('-n',   '--njobs',       dest='njobs',       help='# jobs to run in parallel',    default=0,           type='int')
+    parser.add_option(        '--nfiles',      dest='nfiles',      help='# of files to run on',         default=-1,          type='int')
     (opt, args) = parser.parse_args()
 
     #compile c++ wrapper to run over trees
@@ -110,6 +111,8 @@ def main():
 
     # gkole fix me or delete this part (26/10/2023)
     # in nanoaod we have branch to read no of events, somehow need to read cross-section from input JSON
+
+    '''
     #read normalization
     xsecWgts, integLumi = {}, {}
     cache='%s/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/.xsecweights.pck'%os.environ['CMSSW_BASE']
@@ -128,7 +131,7 @@ def main():
         print '(Re-)Computing original number of events and storing in cache, this may take a while if it\'s the first time'
         print 'Current cache contains %d processes'%len(xsecWgts)
         xsecWgts, integLumi = produceNormalizationCache(samplesList=samplesList,inDir=opt.inDir,cache=cache, normWgts=xsecWgts, integLumi=integLumi)
-
+    
     #DY scale factor
     if opt.dyScale:
         cachefile=open(opt.dyScale,'r')
@@ -140,7 +143,8 @@ def main():
             print tag,xsecWgts[tag].GetBinContent(1),' -> ',
             xsecWgts[tag].Scale(dySF[0])
             print xsecWgts[tag].GetBinContent(1)
-
+    '''
+    
     #create the analysis jobs
     runTags = []
     task_list = []
@@ -157,11 +161,12 @@ def main():
         runTags.append(tag)
         input_list=getEOSlslist(directory=opt.inDir+'/'+tag)
         # Weight histograms passed here are passed from storeTools
-        wgt = xsecWgts[tag]
+        # wgt = xsecWgts[tag] # now hard coded here as 1.0
+        wgt = 1.0
 
         for nf in xrange(0,len(input_list)) :
-            #if nf > 0: # Use to run only one file for tests
-            #    continue
+            if nf >= opt.nfiles: # Use to run only one file for tests (default is -1)
+                continue
             outF='%s/%s_%d.root'%(opt.outDir,tag,nf)
             task_list.append( (input_list[nf], outF, wgt, opt.tmvaWgts, sample[1]) )
 
