@@ -40,34 +40,7 @@ void TTbarEventAnalysis::prepareOutput(TString outFile)
   kinTree_->Branch("j2ll_deta",     &j2ll_deta_,       "j2ll_deta/F");
   kinTree_->Branch("j2ll_dphi",     &j2ll_dphi_,       "j2ll_dphi/F");
   kinTree_->Branch("kindisc",        kinDisc_,         "kindisc[5]/F");
-  //kinTree_->Branch("jp",             &(jp_[0]),              "jp/F");
-  //kinTree_->Branch("svhe",           &(svhe_[0]),            "svhe/F");
-  //kinTree_->Branch("csv",            &(csv_[0]),             "csv/F");
 
-  //kinTree_->Branch("DeepCSVb",               &(DeepCSVb_[0]),        "DeepCSVb/F");
-  //kinTree_->Branch("DeepCSVc",               &(DeepCSVc_[0]),        "DeepCSVc/F");
-  //kinTree_->Branch("DeepCSVl",               &(DeepCSVl_[0]),        "DeepCSVl/F");
-  //kinTree_->Branch("DeepCSVbb",               &(DeepCSVbb_[0]),        "DeepCSVbb/F");
-  //kinTree_->Branch("DeepCSVcc",               &(DeepCSVcc_[0]),        "DeepCSVcc/F");
-  //kinTree_->Branch("DeepCSVbN",               &(DeepCSVbN_[0]),        "DeepCSVbN/F");
-  //kinTree_->Branch("DeepCSVcN",               &(DeepCSVcN_[0]),        "DeepCSVcN/F");
-  //kinTree_->Branch("DeepCSVlN",               &(DeepCSVlN_[0]),        "DeepCSVlN/F");
-  //kinTree_->Branch("DeepCSVbbN",               &(DeepCSVbbN_[0]),        "DeepCSVbbN/F");
-  //kinTree_->Branch("DeepCSVccN",               &(DeepCSVccN_[0]),        "DeepCSVccN/F");
-  //kinTree_->Branch("DeepCSVbP",               &(DeepCSVbP_[0]),        "DeepCSVbP/F");
-  //kinTree_->Branch("DeepCSVcP",               &(DeepCSVcP_[0]),        "DeepCSVcP/F");
-  //kinTree_->Branch("DeepCSVlP",               &(DeepCSVlP_[0]),        "DeepCSVlP/F");
-  //kinTree_->Branch("DeepCSVbbP",               &(DeepCSVbbP_[0]),        "DeepCSVbbP/F");
-  //kinTree_->Branch("DeepCSVccP",               &(DeepCSVccP_[0]),        "DeepCSVccP/F");
-  //kinTree_->Branch("DeepCSVBDisc",               &(DeepCSVBDisc_[0]),        "DeepCSVBDisc/F");
-  //kinTree_->Branch("DeepCSVBDiscN",               &(DeepCSVBDiscN_[0]),        "DeepCSVBDiscN/F");
-  //kinTree_->Branch("DeepCSVBDiscP",               &(DeepCSVb_[0]),        "DeepCSVb/F");
-  //kinTree_->Branch("DeepCSVCvsLDisc",               &(DeepCSVCvsLDisc_[0]),        "DeepCSVCvsLDisc/F");
-  //kinTree_->Branch("DeepCSVCvsLDiscN",               &(DeepCSVCvsLDiscN_[0]),        "DeepCSVCvsLDiscN/F");
-  //kinTree_->Branch("DeepCSVCvsLDiscP",               &(DeepCSVCvsLDiscP_[0]),        "DeepCSVCvsLDiscP/F");
-  //kinTree_->Branch("DeepCSVCvsBDisc",               &(DeepCSVCvsBDisc_[0]),        "DeepCSVCvsBDisc/F");
-  //kinTree_->Branch("DeepCSVCvsBDiscN",               &(DeepCSVCvsBDiscN_[0]),        "DeepCSVCvsBDiscN/F");
-  //kinTree_->Branch("DeepCSVCvsBDiscP",               &(DeepCSVCvsBDiscP_[0]),        "DeepCSVCvsBDiscP/F");
   kinTree_->Branch("DeepFlavourBDisc",            &(DeepFlavourBDisc_[0]),           "DeepFlavourBDisc/F");
   kinTree_->Branch("DeepFlavourCvsLDisc",            &(DeepFlavourCvsLDisc_[0]),           "DeepFlavourCvsLDisc/F");
   kinTree_->Branch("DeepFlavourCvsBDisc",            &(DeepFlavourCvsBDisc_[0]),           "DeepFlavourCvsBDisc/F");
@@ -84,35 +57,7 @@ void TTbarEventAnalysis::prepareOutput(TString outFile)
   ftmTree_->Branch("flavour",        jetFlavour_, "flavour[2]/I");
   ftmTree_->Branch("jetpt",          jetPt_,      "jetpt[2]/F");
   ftmTree_->Branch("jeteta",         jetEta_,     "jeteta[2]/F");
-  //ftmTree_->Branch("jp",             jp_,         "jp[2]/F");
-  //ftmTree_->Branch("svhe",           svhe_,       "svhe[2]/F");
-  //ftmTree_->Branch("csv",            csv_,        "csv[2]/F");
 
-  //ftmTree_->Branch("DeepCSVb",               DeepCSVb_,        "DeepCSVb[2]/F");
-  //ftmTree_->Branch("DeepCSVc",               DeepCSVc_,        "DeepCSVc[2]/F");
-  //ftmTree_->Branch("DeepCSVl",               DeepCSVl_,        "DeepCSVl[2]/F");
-  //ftmTree_->Branch("DeepCSVbb",               DeepCSVbb_,        "DeepCSVbb[2]/F");
-  //ftmTree_->Branch("DeepCSVcc",               DeepCSVcc_,        "DeepCSVcc[2]/F");
-  //ftmTree_->Branch("DeepCSVbN",               DeepCSVbN_,        "DeepCSVbN[2]/F");
-  //ftmTree_->Branch("DeepCSVcN",               DeepCSVcN_,        "DeepCSVcN[2]/F");
-  //ftmTree_->Branch("DeepCSVlN",               DeepCSVlN_,        "DeepCSVlN[2]/F");
-  //ftmTree_->Branch("DeepCSVbbN",               DeepCSVbbN_,        "DeepCSVbbN[2]/F");
-  //ftmTree_->Branch("DeepCSVccN",               DeepCSVccN_,        "DeepCSVccN[2]/F");
-  //ftmTree_->Branch("DeepCSVbP",               DeepCSVbP_,        "DeepCSVbP[2]/F");
-  //ftmTree_->Branch("DeepCSVcP",               DeepCSVcP_,        "DeepCSVcP[2]/F");
-  //ftmTree_->Branch("DeepCSVlP",               DeepCSVlP_,        "DeepCSVlP[2]/F");
-  //ftmTree_->Branch("DeepCSVbbP",               DeepCSVbbP_,        "DeepCSVbbP[2]/F");
-  //ftmTree_->Branch("DeepCSVccP",               DeepCSVccP_,        "DeepCSVccP[2]/F");
-  //
-  //ftmTree_->Branch("DeepCSVBDisc",               DeepCSVBDisc_,        "DeepCSVBDisc[2]/F");
-  //ftmTree_->Branch("DeepCSVBDiscN",               DeepCSVBDiscN_,        "DeepCSVBDiscN[2]/F");
-  //ftmTree_->Branch("DeepCSVBDiscP",               DeepCSVBDiscP_,        "DeepCSVBDiscP[2]/F");
-  //ftmTree_->Branch("DeepCSVCvsLDisc",               DeepCSVCvsLDisc_,        "DeepCSVCvsLDisc[2]/F");
-  //ftmTree_->Branch("DeepCSVCvsLDiscN",               DeepCSVCvsLDiscN_,        "DeepCSVCvsLDiscN[2]/F");
-  //ftmTree_->Branch("DeepCSVCvsLDiscP",               DeepCSVCvsLDiscP_,        "DeepCSVCvsLDiscP[2]/F");
-  //ftmTree_->Branch("DeepCSVCvsBDisc",               DeepCSVCvsBDisc_,        "DeepCSVCvsBDisc[2]/F");
-  //ftmTree_->Branch("DeepCSVCvsBDiscN",               DeepCSVCvsBDiscN_,        "DeepCSVCvsBDiscN[2]/F");
-  //ftmTree_->Branch("DeepCSVCvsBDiscP",               DeepCSVCvsBDiscP_,        "DeepCSVCvsBDiscP[2]/F");
   ftmTree_->Branch("kindisc",        kinDisc_,    "kindisc[2]/F");
   ftmTree_->Branch("weight",         weight_,     "weight[30]/F");
 
@@ -146,62 +91,6 @@ void TTbarEventAnalysis::prepareOutput(TString outFile)
   baseHistos["evsel"]->GetXaxis()->SetBinLabel(11,"=2j");
   baseHistos["evsel"]->GetXaxis()->SetBinLabel(12,"=3j");
   baseHistos["evsel"]->GetXaxis()->SetBinLabel(13,"=4j");
-  baseHistos["jp"]=new TH1F("jp",";Jet probability;Jets",50,0,3);
-  baseHistos["svhe"]=new TH1F("svhe",";Simple secondary vertex (HE);Jets",50,0,6);
-  baseHistos["csv"]=new TH1F("csv",";Combined secondary vertex (IVF);Jets",50,0,1.1);
-  baseHistos["tche"]=new TH1F("tche",";Track Counting High Efficiency;Jets",50,-20,50);
-  baseHistos["jetseltrk"]=new TH1F("jetseltrk",";Selected track multiplicity;Jets",15,0,15);
-  baseHistos["jp_leadkin"]=new TH1F("jp_leadkin",";Jet probability;Jets",50,0,3);
-  baseHistos["svhe_leadkin"]=new TH1F("svhe_leadkin",";Simple secondary vertex (HE);Jets",50,0,6);
-  baseHistos["csv_leadkin"]=new TH1F("csv_leadkin",";Combined secondary vertex (IVF);Jets",50,0,1.1);
-  baseHistos["DeepCSVb"]=new TH1F("DeepCSVb",";DeepCSV b ;Jets",50,0,1.10);
-  baseHistos["DeepCSVc"]=new TH1F("DeepCSVc",";DeepCSV c;Jets",50,0,1.10);
-  baseHistos["DeepCSVl"]=new TH1F("DeepCSVl",";DeepCSV l;Jets",50,0,1.10);
-  baseHistos["DeepCSVbb"]=new TH1F("DeepCSVbb",";DeepCSV bb;Jets",50,0,1.10);
-  baseHistos["DeepCSVcc"]=new TH1F("DeepCSVcc",";DeepCSV cc;Jets",50,0,1.10);
-  baseHistos["DeepCSVbN"]=new TH1F("DeepCSVbN",";DeepCSV bN;Jets",50,0,1.10);
-  baseHistos["DeepCSVcN"]=new TH1F("DeepCSVcN",";DeepCSV cN;Jets",50,0,1.10);
-  baseHistos["DeepCSVlN"]=new TH1F("DeepCSVlN",";DeepCSV lN;Jets",50,0,1.10);
-  baseHistos["DeepCSVbbN"]=new TH1F("DeepCSVbbN",";DeepCSV bbN;Jets",50,0,1.10);
-  baseHistos["DeepCSVccN"]=new TH1F("DeepCSVccN",";DeepCSV ccN;Jets",50,0,1.10);
-  baseHistos["DeepCSVbP"]=new TH1F("DeepCSVbP",";DeepCSV bP;Jets",50,0,1.10);
-  baseHistos["DeepCSVcP"]=new TH1F("DeepCSVcP",";DeepCSV cP;Jets",50,0,1.10);
-  baseHistos["DeepCSVlP"]=new TH1F("DeepCSVlP",";DeepCSV lP;Jets",50,0,1.10);
-  baseHistos["DeepCSVbbP"]=new TH1F("DeepCSVbbP",";DeepCSV bbP;Jets",50,0,1.10);
-  baseHistos["DeepCSVccP"]=new TH1F("DeepCSVccP",";DeepCSV ccP;Jets",50,0,1.10);
-  baseHistos["DeepCSVBDisc"]=new TH1F("DeepCSVBDisc",";DeepCSV B Disc. ;Jets",50,0,1.10);
-  baseHistos["DeepCSVBDiscN"]=new TH1F("DeepCSVBDiscN",";DeepCSV B Disc. N ;Jets",50,0,1.10);
-  baseHistos["DeepCSVBDiscP"]=new TH1F("DeepCSVBDiscP",";DeepCSV B Disc. P ;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsLDisc"]=new TH1F("DeepCSVCvsLDisc",";DeepCSV CvsL Disc. ;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsLDiscN"]=new TH1F("DeepCSVCvsLDiscN",";DeepCSV CvsL Disc. N ;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsLDiscP"]=new TH1F("DeepCSVCvsLDiscP",";DeepCSV CvsL Disc. P ;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsBDisc"]=new TH1F("DeepCSVCvsBDisc",";DeepCSV CvsB Disc. ;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsBDiscN"]=new TH1F("DeepCSVCvsBDiscN",";DeepCSV CvsB Disc. N ;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsBDiscP"]=new TH1F("DeepCSVCvsBDiscP",";DeepCSV CvsB Disc. P ;Jets",50,0,1.10);
-  baseHistos["DeepCSVb_leadkin"]=new TH1F("DeepCSVb_leadkin",";DeepCSV b leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVc_leadkin"]=new TH1F("DeepCSVc_leadkin",";DeepCSV c leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVl_leadkin"]=new TH1F("DeepCSVl_leadkin",";DeepCSV l leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVbb_leadkin"]=new TH1F("DeepCSVbb_leadkin",";DeepCSV bb leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVcc_leadkin"]=new TH1F("DeepCSVcc_leadkin",";DeepCSV cc leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVbN_leadkin"]=new TH1F("DeepCSVbN_leadkin",";DeepCSV b N leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVcN_leadkin"]=new TH1F("DeepCSVcN_leadkin",";DeepCSV c N leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVlN_leadkin"]=new TH1F("DeepCSVlN_leadkin",";DeepCSV l N leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVbbN_leadkin"]=new TH1F("DeepCSVbbN_leadkin",";DeepCSV bb N leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVccN_leadkin"]=new TH1F("DeepCSVccN_leadkin",";DeepCSV cc N leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVbP_leadkin"]=new TH1F("DeepCSVbP_leadkin",";DeepCSV b P leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVcP_leadkin"]=new TH1F("DeepCSVcP_leadkin",";DeepCSV c P leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVlP_leadkin"]=new TH1F("DeepCSVlP_leadkin",";DeepCSV l P leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVbbP_leadkin"]=new TH1F("DeepCSVbbP_leadkin",";DeepCSV bb P leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVccP_leadkin"]=new TH1F("DeepCSVccP_leadkin",";DeepCSV cc P leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVBDisc_leadkin"]=new TH1F("DeepCSVBDisc_leadkin",";DeepCSV B Disc. leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVBDiscN_leadkin"]=new TH1F("DeepCSVBDiscN_leadkin",";DeepCSV B Disc. N leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVBDiscP_leadkin"]=new TH1F("DeepCSVBDiscP_leadkin",";DeepCSV B Disc. P leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsLDisc_leadkin"]=new TH1F("DeepCSVCvsLDisc_leadkin",";DeepCSV CvsL Disc. leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsLDiscN_leadkin"]=new TH1F("DeepCSVCvsLDiscN_leadkin",";DeepCSV CvsL Disc. N leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsLDiscP_leadkin"]=new TH1F("DeepCSVCvsLDiscP_leadkin",";DeepCSV CvsL Disc. P leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsBDisc_leadkin"]=new TH1F("DeepCSVCvsBDisc_leadkin",";DeepCSV CvsB Disc. leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsBDiscN_leadkin"]=new TH1F("DeepCSVCvsBDiscN_leadkin",";DeepCSV CvsB Disc. N leadkin;Jets",50,0,1.10);
-  baseHistos["DeepCSVCvsBDiscP_leadkin"]=new TH1F("DeepCSVCvsBDiscP_leadkin",";DeepCSV CvsB Disc. P leadkin;Jets",50,0,1.10);
   baseHistos["DeepFlavourBDisc"]=new TH1F("DeepFlavourBDisc",";DeepFlavour B Disc. ;Jets",50,0,1.10);
   baseHistos["DeepFlavourCvsLDisc"]=new TH1F("DeepFlavourCvsLDisc",";DeepFlavour CvsL Disc. ;Jets",50,0,1.10);
   baseHistos["DeepFlavourCvsBDisc"]=new TH1F("DeepFlavourCvsBDisc",";DeepFlavour CvsB Disc. ;Jets",50,0,1.10);
@@ -291,6 +180,11 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   std::cout << "...opening " << inFile << " -> analysing " << nentries << " events -> " << outF_->GetName();
   std::cout << std::endl;
 
+  //TTree *emni=(TTree *)inF->Get("sumw");
+  //newTree_ = (TTree *)emni->Project("sumw", "total_events");
+  TTree *newTree = (TTree *)inF->Get("sumw");
+  //emni->Project("total_events>>h()")
+
   /*map<string, double> XS_map = {{"MC13TeV_TTJets_DL_training", 72.6983,},
                                 {"MC13TeV_TTJets_AH_training", 316.466,},
                                 {"MC13TeV_TTJets_SL_training", 303.358,},
@@ -310,7 +204,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     inF->Close();
     return 0;
   }
-
+  
   //prepare reader
   std::vector<Float_t> tmvaVars( tmvaVarNames_.size(), 0. );
   if(weightsDir_!=""){
@@ -331,9 +225,10 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   {
     UInt_t LumiBlock,Run;
     ULong64_t Evt;
-    Int_t nPV,nSV,nTrack,Jet_nseltracks[100],Jet_SV_multi[100],Jet_nFirstSV[100],Jet_nLastSV[100],Jet_nFirstTrack[10000],Jet_nLastTrack[10000];
+    UChar_t npvs; // working but need to static_cast<int>(npvs)
+    Int_t nSV,nTrack,Jet_nseltracks[100],Jet_SV_multi[100],Jet_nFirstSV[100],Jet_nLastSV[100],Jet_nFirstTrack[10000],Jet_nLastTrack[10000];
     Long64_t ttbar_trigWord, ttbar_lep_gid[10], ttbar_chan, Jet_flavour[100];
-    Int_t     ttbar_metfilterWord;
+    Int_t   ttbar_metfilterWord;
     Int_t   nttbar_lep, ttbar_lep_id[10],  ttbar_lep_ch[10];
     Float_t ttbar_lep_pt[10], ttbar_lep_eta[10], ttbar_lep_phi[10], ttbar_lep_m[10];
     Float_t ttbar_met_pt,ttbar_met_phi, ttbar_ptweight;
@@ -352,34 +247,38 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     Float_t Jet_DeepFlavourB[100];
     Float_t Track_pt[10000];
     Float_t Jet_SoftMuN[1000],Jet_SoftMu[1000],Jet_CombIVF_N[100];
-  } evinit;
+   } evinit;
   MyEventInfoBranches_t ev;
+  
+  Long64_t total_events;
+  newTree->SetBranchAddress("total_events", &total_events);
+
   // Set the address for the branches you want to extract from the input ttree. The naming convention must match that used in the original ttree.
   tree->SetBranchAddress("Run"        , &ev.Run        );
   tree->SetBranchAddress("Evt"        , &ev.Evt        );
   tree->SetBranchAddress("rho"        , &ev.rho        );
   tree->SetBranchAddress("LumiBlock"  , &ev.LumiBlock  );
-  //tree->SetBranchAddress("nPV"        , &ev.nPV        ); //gkole fixme in v6: IMP
+  tree->SetBranchAddress("npvs"       , &ev.npvs       ); //gkole fixme in v6: IMP
   tree->SetBranchAddress("nPU"        , &ev.nPU        );
   tree->SetBranchAddress("nPUtrue",     &ev.nPUtrue );
   tree->SetBranchAddress("ttbar_chan" , &ev.ttbar_chan);
   //tree->SetBranchAddress("ttbar_metfilterWord", &ev.ttbar_metfilterWord);
   tree->SetBranchAddress("ttbar_trigWord", &ev.ttbar_trigWord);
   tree->SetBranchAddress("nttbar_lep"   ,  &ev.nttbar_lep);
-  tree->SetBranchAddress("ttbar_lep_pt"  ,   ev.ttbar_lep_pt);
-  tree->SetBranchAddress("ttbar_lep_eta" ,   ev.ttbar_lep_eta);
-  tree->SetBranchAddress("ttbar_lep_phi" ,   ev.ttbar_lep_phi);
-  tree->SetBranchAddress("ttbar_lep_m"   ,   ev.ttbar_lep_m);
-  tree->SetBranchAddress("ttbar_lep_id"  ,   ev.ttbar_lep_id);
-  tree->SetBranchAddress("ttbar_lep_gid" ,   ev.ttbar_lep_gid);
-  tree->SetBranchAddress("ttbar_lep_ch"  ,   ev.ttbar_lep_ch);
+  tree->SetBranchAddress("ttbar_lep_pt"  ,   &ev.ttbar_lep_pt);
+  tree->SetBranchAddress("ttbar_lep_eta" ,   &ev.ttbar_lep_eta);
+  tree->SetBranchAddress("ttbar_lep_phi" ,   &ev.ttbar_lep_phi);
+  tree->SetBranchAddress("ttbar_lep_m"   ,   &ev.ttbar_lep_m);
+  tree->SetBranchAddress("ttbar_lep_id"  ,   &ev.ttbar_lep_id);
+  tree->SetBranchAddress("ttbar_lep_gid" ,   &ev.ttbar_lep_gid);
+  tree->SetBranchAddress("ttbar_lep_ch"  ,   &ev.ttbar_lep_ch);
   tree->SetBranchAddress("ttbar_met_pt",  &ev.ttbar_met_pt);
   tree->SetBranchAddress("ttbar_met_phi", &ev.ttbar_met_phi);
   //tree->SetBranchAddress("ttbar_ptweight", &ev.ttbar_ptweight);
   //tree->SetBranchAddress("ttbar_nw",     &ev.ttbar_nw); //gkole fixme in v6: IMP
-  tree->SetBranchAddress("ttbar_w",      ev.ttbar_w);
+  tree->SetBranchAddress("ttbar_w",      &ev.ttbar_w);
   tree->SetBranchAddress("nJet",            &ev.nJet);
-  tree->SetBranchAddress("Jet_pt",          ev.Jet_pt);
+  tree->SetBranchAddress("Jet_pt",          &ev.Jet_pt);
   if(!isData){
     tree->SetBranchAddress("Jet_genpt",       ev.Jet_genpt);
   }
@@ -388,32 +287,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   tree->SetBranchAddress("Jet_eta",         ev.Jet_eta);
   tree->SetBranchAddress("Jet_phi",         ev.Jet_phi);
   tree->SetBranchAddress("Jet_mass",        ev.Jet_mass);
-  //tree->SetBranchAddress("Jet_Svx",         ev.Jet_Svx);
-  //tree->SetBranchAddress("Jet_CombIVF",     ev.Jet_CombIVF);
-  //tree->SetBranchAddress("Jet_CombIVF_N",     ev.Jet_CombIVF_N);
-  //ree->SetBranchAddress("Jet_SV_multi",         ev.Jet_SV_multi);
-  //ree->SetBranchAddress("Jet_nFirstSV",         ev.Jet_nFirstSV);
-  //ree->SetBranchAddress("Jet_nLastSV",         ev.Jet_nLastSV);
-  //ree->SetBranchAddress("Jet_nFirstTrack",         ev.Jet_nFirstTrack);
-  //ree->SetBranchAddress("Jet_nLastTrack",         ev.Jet_nLastTrack);
-  //ree->SetBranchAddress("Jet_SoftMuN",     ev.Jet_SoftMuN);
-  //ree->SetBranchAddress("Jet_SoftMu",     ev.Jet_SoftMu);
-  //ree->SetBranchAddress("Jet_Proba",       ev.Jet_Proba);
-  //ree->SetBranchAddress("Jet_Ip2P",        ev.Jet_Ip2P);
-  //ree->SetBranchAddress("Jet_nseltracks",  ev.Jet_nseltracks);
   tree->SetBranchAddress("Jet_flavour",     ev.Jet_flavour);
-  //tree->SetBranchAddress("Jet_DeepCSVb",  ev.Jet_DeepCSVb);
-  //tree->SetBranchAddress("Jet_DeepCSVc",  ev.Jet_DeepCSVc);
-  //tree->SetBranchAddress("Jet_DeepCSVl",  ev.Jet_DeepCSVl);
-  //tree->SetBranchAddress("Jet_DeepCSVbN",  ev.Jet_DeepCSVbN);
-  //tree->SetBranchAddress("Jet_DeepCSVcN",  ev.Jet_DeepCSVcN);
-  //tree->SetBranchAddress("Jet_DeepCSVlN",  ev.Jet_DeepCSVlN);
-  //tree->SetBranchAddress("Jet_DeepCSVBDisc", ev.Jet_DeepCSVBDisc);
-  //tree->SetBranchAddress("Jet_DeepCSVBDiscN", ev.Jet_DeepCSVBDiscN);
-  //tree->SetBranchAddress("Jet_DeepCSVCvsLDisc", ev.Jet_DeepCSVCvsLDisc);
-  //tree->SetBranchAddress("Jet_DeepCSVCvsLDiscN", ev.Jet_DeepCSVCvsLDiscN);
-  //tree->SetBranchAddress("Jet_DeepCSVCvsBDisc", ev.Jet_DeepCSVCvsBDisc);
-  //tree->SetBranchAddress("Jet_DeepCSVCvsBDiscN", ev.Jet_DeepCSVCvsBDiscN);
   tree->SetBranchAddress("Jet_DeepFlavourBDisc", ev.Jet_DeepFlavourBDisc);
   tree->SetBranchAddress("Jet_DeepFlavourCvsLDisc", ev.Jet_DeepFlavourCvsLDisc);
   tree->SetBranchAddress("Jet_DeepFlavourCvsBDisc", ev.Jet_DeepFlavourCvsBDisc);
@@ -437,11 +311,19 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   }
   cont.push_back(std::string(inFile).substr(previous, current - previous));
   std::string filenickname = cont.at(0);
+  cout << "filenickname: " << filenickname << endl;
   if(!isData){
     //SetPUWeightTarget("pileup_weights/pileupWgts2016.root",filenickname);
     SetPUWeightTarget("pileup_weights/pileupWgts2018_preVFP.root",filenickname);
   }
 
+
+  // Just to get total_events
+  for(Int_t i=0; i<1; i++){
+    newTree->GetEntry(i);
+    cout << "total_events: " << total_events << endl;
+  }
+  
   int Event_i = 0;
 
   //nentries=100;
@@ -646,10 +528,20 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       }
     }
     
-    if (0) cout << "gkole-fixme weight: " << evWgt << endl;
+    if (1) cout << "gkole-fixme weight: " << evWgt << endl;
+    if(!isData){
+      evWgt = 1.0;
+    }
+    if (1) cout << "gkole (temporary) set evWgt to: " << evWgt << endl;
     histos_[ch+"_evsel"]->Fill("pre-sel",presel_evwgt);
-    histos_[ch+"_npvinc"]->Fill(ev.nPV-1,presel_evwgt);
-    npv_=ev.nPV;
+    histos_[ch+"_npvinc"]->Fill(ev.npvs-1,presel_evwgt);
+    int npvs_int = static_cast<int>(ev.npvs);
+    //cout << "ev.npvs: " << ev.npvs << endl; // this is showing zero
+    cout << "npvs_int: " << npvs_int << endl;
+    if (0) cout << "ev.nPU: " << ev.nPU << endl; 
+    npv_=static_cast<int>(ev.npvs);
+    
+    
 
     //#########################
     // JET/MET SELECTION
@@ -829,7 +721,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     if(selJetsP4.size()==3){histos_[ch+"_evsel"]->Fill("=3j",evWgt);}
     if(selJetsP4.size()==4){histos_[ch+"_evsel"]->Fill("=4j",evWgt);}
 
-    histos_[ch+"_npv"]->Fill(ev.nPV-1,evWgt);
+    histos_[ch+"_npv"]->Fill(static_cast<int>(ev.npvs)-1,evWgt);
     histos_[ch+"_mll"]->Fill(mll,evWgt);
     histos_[ch+"_njets"]->Fill(selJetsP4.size(),evWgt);
     histos_[ch+"_leadjpt"]->Fill(selJetsP4[0][0].Pt(),evWgt);
@@ -861,23 +753,6 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       // selected jets. Therefore need to get info for selected jets only.
       //cout << "Jet_DeepFlavourBDisc for jidx " << jetIdx << " = " << ev.Jet_DeepFlavourBDisc[jetIdx] << endl;
       Int_t jetIdx(selJets[ij]);
-      //histos_[ch+"_jp"]->Fill(ev.Jet_Proba[jetIdx],evWgt);
-      //histos_[ch+"_svhe"]->Fill(ev.Jet_Svx[jetIdx],evWgt);
-      //histos_[ch+"_csv"]->Fill(ev.Jet_CombIVF[jetIdx],evWgt);
-      //histos_[ch+"_tche"]->Fill(ev.Jet_Ip2P[jetIdx],evWgt);
-      //histos_[ch+"_jetseltrk"]->Fill(ev.Jet_nseltracks[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVb"]->Fill(ev.Jet_DeepCSVb[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVc"]->Fill(ev.Jet_DeepCSVc[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVl"]->Fill(ev.Jet_DeepCSVl[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVbN"]->Fill(ev.Jet_DeepCSVbN[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVcN"]->Fill(ev.Jet_DeepCSVcN[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVlN"]->Fill(ev.Jet_DeepCSVlN[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVBDisc"]->Fill(ev.Jet_DeepCSVBDisc[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVBDiscN"]->Fill(ev.Jet_DeepCSVBDiscN[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVCvsLDisc"]->Fill(ev.Jet_DeepCSVCvsLDisc[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVCvsLDiscN"]->Fill(ev.Jet_DeepCSVCvsLDiscN[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVCvsBDisc"]->Fill(ev.Jet_DeepCSVCvsBDisc[jetIdx],evWgt);
-      //histos_[ch+"_DeepCSVCvsBDiscN"]->Fill(ev.Jet_DeepCSVCvsBDiscN[jetIdx],evWgt);
       histos_[ch+"_DeepFlavourBDisc"]->Fill(ev.Jet_DeepFlavourBDisc[jetIdx],evWgt);
       histos_[ch+"_DeepFlavourCvsLDisc"]->Fill(ev.Jet_DeepFlavourCvsLDisc[jetIdx],evWgt);
       histos_[ch+"_DeepFlavourCvsBDisc"]->Fill(ev.Jet_DeepFlavourCvsBDisc[jetIdx],evWgt);
@@ -908,23 +783,6 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     if(tmvaReader_){
       for(size_t ij=0; ij<2; ij++){
         size_t jetIdx=leadingkindiscIdx[ij];
-        //histos_[ch+"_jp_leadkin"]->Fill(ev.Jet_Proba[jetIdx],evWgt);
-        //histos_[ch+"_svhe_leadkin"]->Fill(ev.Jet_Svx[jetIdx],evWgt);
-        //histos_[ch+"_csv_leadkin"]->Fill(ev.Jet_CombIVF[jetIdx],evWgt);
-        //histos_[ch+"_tche_leadkin"]->Fill(ev.Jet_Ip2P[jetIdx],evWgt);
-        //histos_[ch+"_jetseltrk_leadkin"]->Fill(ev.Jet_nseltracks[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVb_leadkin"]->Fill(ev.Jet_DeepCSVb[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVc_leadkin"]->Fill(ev.Jet_DeepCSVc[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVl_leadkin"]->Fill(ev.Jet_DeepCSVl[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVbN_leadkin"]->Fill(ev.Jet_DeepCSVbN[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVcN_leadkin"]->Fill(ev.Jet_DeepCSVcN[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVlN_leadkin"]->Fill(ev.Jet_DeepCSVlN[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVBDisc_leadkin"]->Fill(ev.Jet_DeepCSVBDisc[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVBDiscN_leadkin"]->Fill(ev.Jet_DeepCSVBDiscN[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVCvsLDisc_leadkin"]->Fill(ev.Jet_DeepCSVCvsLDisc[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVCvsLDiscN_leadkin"]->Fill(ev.Jet_DeepCSVCvsLDiscN[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVCvsBDisc_leadkin"]->Fill(ev.Jet_DeepCSVCvsBDisc[jetIdx],evWgt);
-        //histos_[ch+"_DeepCSVCvsBDiscN_leadkin"]->Fill(ev.Jet_DeepCSVCvsBDiscN[jetIdx],evWgt);
         histos_[ch+"_DeepFlavourBDisc_leadkin"]->Fill(ev.Jet_DeepFlavourBDisc[jetIdx],evWgt);
         histos_[ch+"_DeepFlavourCvsLDisc_leadkin"]->Fill(ev.Jet_DeepFlavourCvsLDisc[jetIdx],evWgt);
         histos_[ch+"_DeepFlavourCvsBDisc_leadkin"]->Fill(ev.Jet_DeepFlavourCvsBDisc[jetIdx],evWgt);
@@ -939,6 +797,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     eventInfo_[1]=ev.Evt;
     eventInfo_[2]=ev.LumiBlock;
 
+    
     jetmult_=selJetsP4.size();
     ttbar_chan_=ev.ttbar_chan;
 
@@ -947,7 +806,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     {
       Float_t selWeight(jetCount[iSystVar]>=2 ? 1.0 : 0.0);
       weight_[iSystVar]=evWgt*selWeight;
-    }
+    } // gkole (try to understand weight)
     weight_[5] = puWgtNom>0 ? evWgt*puWgtLo/puWgtNom : evWgt;
     weight_[6] = puWgtLo>0  ? evWgt*puWgtHi/puWgtNom : evWgt;
     weight_[7] = evWgt*trigWgtLo/trigWgtNom;
@@ -1003,21 +862,6 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       far_lj2ll_dphi_ = selJetsLJKinematics[ij][0][1].lj2ll_dphi;
       j2ll_deta_  =fabs(selJetsP4[ij][0].Eta()-dilepton.Eta());
       j2ll_dphi_  =fabs(selJetsP4[ij][0].DeltaPhi( dilepton ));
-      //jp_[0]=ev.Jet_Proba[jetIdx];
-      //svhe_[0]=ev.Jet_Svx[jetIdx];
-      //csv_[0]=ev.Jet_CombIVF[jetIdx];
-      //DeepCSVb_[0]=ev.Jet_DeepCSVb[jetIdx];
-      //DeepCSVc_[0]=ev.Jet_DeepCSVc[jetIdx];
-      //DeepCSVl_[0]=ev.Jet_DeepCSVl[jetIdx];
-      //DeepCSVbN_[0]=ev.Jet_DeepCSVbN[jetIdx];
-      //DeepCSVcN_[0]=ev.Jet_DeepCSVcN[jetIdx];
-      //DeepCSVlN_[0]=ev.Jet_DeepCSVlN[jetIdx];
-      //DeepCSVBDisc_[0]=ev.Jet_DeepCSVBDisc[jetIdx];
-      //DeepCSVBDiscN_[0]=ev.Jet_DeepCSVBDiscN[jetIdx];
-      //DeepCSVCvsLDisc_[0]=ev.Jet_DeepCSVCvsLDisc[jetIdx];
-      //DeepCSVCvsLDiscN_[0]=ev.Jet_DeepCSVCvsLDiscN[jetIdx];
-      //DeepCSVCvsBDisc_[0]=ev.Jet_DeepCSVCvsBDisc[jetIdx];
-      //DeepCSVCvsBDiscN_[0]=ev.Jet_DeepCSVCvsBDiscN[jetIdx];
       DeepFlavourBDisc_[0]=ev.Jet_DeepFlavourBDisc[jetIdx];
       DeepFlavourCvsLDisc_[0]=ev.Jet_DeepFlavourCvsLDisc[jetIdx];
       DeepFlavourCvsBDisc_[0]=ev.Jet_DeepFlavourCvsBDisc[jetIdx];
@@ -1033,22 +877,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
         jetFlavour_[ij] = ev.Jet_flavour[jetIdx];
         jetPt_[ij]      = ev.Jet_pt[jetIdx];
         jetEta_[ij]     = ev.Jet_eta[jetIdx];
-        //jp_[ij]         = ev.Jet_Proba[jetIdx];
-        //svhe_[ij]       = ev.Jet_Svx[jetIdx];
-        //csv_[ij]        = ev.Jet_CombIVF[jetIdx];
         kinDisc_[ij]    = leadingkindisc[ij];
-        //DeepCSVb_[ij] = ev.Jet_DeepCSVb[jetIdx];
-        //DeepCSVc_[ij] = ev.Jet_DeepCSVc[jetIdx];
-        //DeepCSVl_[ij] = ev.Jet_DeepCSVl[jetIdx];
-        //DeepCSVbN_[ij] = ev.Jet_DeepCSVbN[jetIdx];
-        //DeepCSVcN_[ij] = ev.Jet_DeepCSVcN[jetIdx];
-        //DeepCSVlN_[ij] = ev.Jet_DeepCSVlN[jetIdx];
-        //DeepCSVBDisc_[ij] = ev.Jet_DeepCSVBDisc[jetIdx];
-        //DeepCSVBDiscN_[ij] = ev.Jet_DeepCSVBDiscN[jetIdx];
-        //DeepCSVCvsLDisc_[ij] = ev.Jet_DeepCSVCvsLDisc[jetIdx];
-        //DeepCSVCvsLDiscN_[ij] = ev.Jet_DeepCSVCvsLDiscN[jetIdx];
-        //DeepCSVCvsBDisc_[ij] = ev.Jet_DeepCSVCvsBDisc[jetIdx];
-        //DeepCSVCvsBDiscN_[ij] = ev.Jet_DeepCSVCvsBDiscN[jetIdx];
         DeepFlavourBDisc_[ij] = ev.Jet_DeepFlavourBDisc[jetIdx];
         DeepFlavourCvsLDisc_[ij] = ev.Jet_DeepFlavourCvsLDisc[jetIdx];
         DeepFlavourCvsBDisc_[ij] = ev.Jet_DeepFlavourCvsBDisc[jetIdx];
