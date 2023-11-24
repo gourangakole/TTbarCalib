@@ -1,0 +1,4 @@
+{
+"MuonEGRun2022C-27Jun2023-v1"         : [1.0, 1, "/MuonEG/Run2022C-27Jun2023/NANOAOD", "Data", 1, false, false, 1],
+"MuonEGRun2022D-27Jun2023-v2"         : [1.0, 1, "/MuonEG/Run2022D-27Jun2023/NANOAOD", "Data", 1, false, false, 1]
+}
