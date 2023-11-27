@@ -108,7 +108,8 @@ class TTbarEventAnalysis
   std::vector<TString> tmvaVarNames_;
   TMVA::Reader *tmvaReader_;
   TFile *outF_;
-  Int_t eventInfo_[3],ttbar_chan_, npv_,nSV,nTrack,Jet_nseltracks[100],Jet_CombIVF_N[100],Jet_SV_multi[100],Jet_nFirstSV[100],Jet_nLastSV[100],Jet_nFirstTrack[10000],Jet_nLastTrack[10000];
+  ULong64_t npv_;
+  Int_t eventInfo_[3],ttbar_chan_, nSV,nTrack,Jet_nseltracks[100],Jet_CombIVF_N[100],Jet_SV_multi[100],Jet_nFirstSV[100],Jet_nLastSV[100],Jet_nFirstTrack[10000],Jet_nLastTrack[10000];
   Float_t SV_mass[100], SV_flight[100],Jet_Svx[10], SV_vtx_pt[10], Track_pt[10];
   Int_t SV_nTrk[100];
   Float_t Jet_SoftMuN[1000];
@@ -131,7 +132,7 @@ class TTbarEventAnalysis
   Float_t jp_[2],svhe_[2],csv_[2];
   Float_t DeepCSVb_[2], DeepCSVc_[2], DeepCSVl_[2], DeepCSVbb_[2], DeepCSVcc_[2], DeepCSVbN_[2], DeepCSVcN_[2], DeepCSVlN_[2], DeepCSVbbN_[2], DeepCSVccN_[2], DeepCSVbP_[2], DeepCSVcP_[2], DeepCSVlP_[2], DeepCSVbbP_[2], DeepCSVccP_[2];
   Float_t DeepCSVBDisc_[2], DeepCSVBDiscN_[2], DeepCSVBDiscP_[2], DeepCSVCvsLDisc_[2], DeepCSVCvsLDiscN_[2], DeepCSVCvsLDiscP_[2], DeepCSVCvsBDisc_[2], DeepCSVCvsBDiscN_[2], DeepCSVCvsBDiscP_[2];
-  Float_t DeepFlavourBDisc_[2], DeepFlavourCvsLDisc_[2], DeepFlavourCvsBDisc_[2];
+  Float_t DeepFlavourBDisc_[2], PNetBDisc_[2], ParTBDisc_[2], DeepFlavourCvsLDisc_[2], DeepFlavourCvsBDisc_[2];
   Float_t DeepFlavourB_[2], DeepFlavourBB_[2], DeepFlavourLEPB_[2];
   std::vector<std::pair<Int_t,Int_t> > triggerBits_;
   TTree *kinTree_,*ftmTree_,*evVarTree_;
