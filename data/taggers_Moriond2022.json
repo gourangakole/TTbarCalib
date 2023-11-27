@@ -1,3 +1,5 @@
 {
-  "DeepFlavourBDisc" : ["Deep Jet Discriminator", "Jet_FlavourBDisc", 0.0583 , 0.3086 , 0.7183 , 0.8111 , 0.9512, 1.01]
+    "DeepFlavourBDisc" : ["Deep Jet Discriminator",  "Jet_FlavourBDisc", 0.0583 , 0.3086 , 0.7183 , 0.8111 , 0.9512, 1.01],
+    "PNetBDisc"        : ["Particle Net Discriminator", "Jet_PNetBDisc", 0.047 , 0.245 , 0.6734 , 0.7862 , 0.961, 1.01],
+    "ParTBDisc"        : ["ParticleTransformer Disc  ", "Jet_ParTBDisc", 0.0849, 0.4319, 0.8482, 0.9151, 0.9874, 1.01]
 }
