@@ -15,6 +15,7 @@
 #include "iterator"
 #include <map>
 #include <vector>
+#include <iostream>
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 #include "JetMETCorrections/Modules/interface/JetResolution.h"
@@ -32,12 +33,13 @@ class TTbarEventAnalysis
  public:
  TTbarEventAnalysis() :
     tmvaReader_(0),
-    readTTJetsGenWeights_(false),
-    puWgtGr_(0),puWgtDownGr_(0),puWgtUpGr_(0)
+    readTTJetsGenWeights_(false)
+      //puWgtGr_(0),puWgtDownGr_(0),puWgtUpGr_(0)
       {
 	// Jet resolution/energy correction uncertainty parameterizations
 	//TString jecUncUrl("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt");
-	TString jecUncUrl("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt");
+	//TString jecUncUrl("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt");
+	TString jecUncUrl("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer22_22Sep2023_V1_MC_Uncertainty_AK4PFPuppi.txt");
 	gSystem->ExpandPathName(jecUncUrl);
 	jecUnc_ = new JetCorrectionUncertainty(jecUncUrl.Data());
 	//TString jer_file("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer20UL16_JRV3_MC_PtResolution_AK4PFchs.txt");
@@ -59,36 +61,10 @@ class TTbarEventAnalysis
   void addVarForTMVA(TString varName)                         { tmvaVarNames_.push_back(varName); }
   void prepareOutput(TString outFile);
   Int_t checkFile(TString inFile);
+  TH1F* readHistogram(const char* fileName, const char* histogramName);
   Int_t processFile(TString inFile,Float_t xsecWgt,Bool_t isData);
   void finalizeOutput(Float_t xsecWgt);
-
-  void SetPUWeightTarget(TString targetFile, TString sampleName){
-        TFile *fIn=TFile::Open(targetFile);
-  	    if(fIn){
-          std::string nom("puwgts_nom");
-          std::string up("puwgts_down");
-          std::string down("puwgts_up");
-          if(!sampleName.IsNull()){
-              nom.append("_");
-              nom.append(sampleName);
-              up.append("_");
-              up.append(sampleName);
-              down.append("_");
-              down.append(sampleName);
-          }
-          else{
-            std::cout << "Warning: PUWeight target histogram " << sampleName << " does not exist. Check naming convention of samples matches that of PU histograms." << std::endl;
-          }
-  	      puWgtGr_     = (TGraph *)fIn->Get(nom.c_str());
-  	      puWgtDownGr_ = (TGraph *)fIn->Get(down.c_str());
-  	      puWgtUpGr_   = (TGraph *)fIn->Get(up.c_str());
-  	    }
-        else{
-  	      std::cout << "Unable to find pileupWgts.root, no PU reweighting will be applied" << std::endl;
-  	    }
-  	    fIn->Close();
-  	}
-
+  
  private:
   JetCorrectionUncertainty *jecUnc_;
   JME::JetResolution *resolution;
@@ -101,8 +77,7 @@ class TTbarEventAnalysis
   std::vector<float> getJetEnergyScales(float pt,float eta,float rawsf,float area,float rho);
   //std::vector<float> getJetResolutionScales(float pt, float eta, float genjpt);
   std::vector<float> getJERVariations(float pt, float eta, float genjpt, float JER_sf, float JER_sf_up, float JER_sf_down, float JER_mc);
-
-  TGraph *puWgtGr_,*puWgtDownGr_,*puWgtUpGr_;
+  TH1F *puWgtGr_, *puWgtDownGr_, *puWgtUpGr_;
   bool readTTJetsGenWeights_;
   TString weightsDir_;
   std::vector<TString> tmvaVarNames_;
