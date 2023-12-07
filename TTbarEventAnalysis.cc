@@ -42,6 +42,8 @@ void TTbarEventAnalysis::prepareOutput(TString outFile)
   kinTree_->Branch("kindisc",        kinDisc_,         "kindisc[5]/F");
 
   kinTree_->Branch("DeepFlavourBDisc",            &(DeepFlavourBDisc_[0]),           "DeepFlavourBDisc/F");
+  kinTree_->Branch("PNetBDisc",            &(PNetBDisc_[0]),           "PNetBDisc/F");
+  kinTree_->Branch("ParTBDisc",            &(ParTBDisc_[0]),           "ParTBDisc/F");
   kinTree_->Branch("DeepFlavourCvsLDisc",            &(DeepFlavourCvsLDisc_[0]),           "DeepFlavourCvsLDisc/F");
   kinTree_->Branch("DeepFlavourCvsBDisc",            &(DeepFlavourCvsBDisc_[0]),           "DeepFlavourCvsBDisc/F");
   //kinTree_->Branch("DeepFlavourB",            &(DeepFlavourB_[0]),           "DeepFlavourB/F");
@@ -65,6 +67,7 @@ void TTbarEventAnalysis::prepareOutput(TString outFile)
   std::map<TString,TH1F *> baseHistos;
   baseHistos["npvinc" ]  = new TH1F("npvinc", ";nPV_{incl.};Events",              50, 0, 50);
   baseHistos["npv"    ]  = new TH1F("npv",    ";nPV;Events",              50, 0, 50);
+  baseHistos["npvGood"]  = new TH1F("npvGood",";nPV (Good);Events",       50, 0, 50);
   baseHistos["rho"    ]  = new TH1F("rho",    ";#rho [GeV];Events",                      50, 0, 30);
   baseHistos["mll"    ]  = new TH1F("mll",    ";Dilepton invariant mass [GeV];Events",   20, 0, 300);
   baseHistos["mllinc" ]  = new TH1F("mllinc", ";Dilepton invariant mass [GeV];Events",   20, 0, 300);
@@ -92,12 +95,16 @@ void TTbarEventAnalysis::prepareOutput(TString outFile)
   baseHistos["evsel"]->GetXaxis()->SetBinLabel(12,"=3j");
   baseHistos["evsel"]->GetXaxis()->SetBinLabel(13,"=4j");
   baseHistos["DeepFlavourBDisc"]=new TH1F("DeepFlavourBDisc",";DeepFlavour B Disc. ;Jets",50,0,1.10);
+  baseHistos["PNetBDisc"]=new TH1F("PNetBDisc",";PNet B Disc. ;Jets",50,0,1.10);
+  baseHistos["ParTBDisc"]=new TH1F("ParTBDisc",";ParT B Disc. ;Jets",50,0,1.10);
   baseHistos["DeepFlavourCvsLDisc"]=new TH1F("DeepFlavourCvsLDisc",";DeepFlavour CvsL Disc. ;Jets",50,0,1.10);
   baseHistos["DeepFlavourCvsBDisc"]=new TH1F("DeepFlavourCvsBDisc",";DeepFlavour CvsB Disc. ;Jets",50,0,1.10);
   baseHistos["DeepFlavourB"]=new TH1F("DeepFlavourB",";DeepFlavourB ;Jets",50,0,1.10);
   baseHistos["DeepFlavourBB"]=new TH1F("DeepFlavourBB",";DeepFlavourBB ;Jets",50,0,1.10);
   baseHistos["DeepFlavourLEPB"]=new TH1F("DeepFlavourLEPB",";DeepFlavourLEPB ;Jets",50,0,1.10);
   baseHistos["DeepFlavourBDisc_leadkin"]=new TH1F("DeepFlavourBDisc_leadkin",";DeepFlavour B Disc. leadkin;Jets",50,0,1.10);
+  baseHistos["PNetBDisc_leadkin"]=new TH1F("PNetBDisc_leadkin",";PNet B Disc. leadkin;Jets",50,0,1.10);
+  baseHistos["ParTBDisc_leadkin"]=new TH1F("ParTBDisc_leadkin",";ParT B Disc. leadkin;Jets",50,0,1.10);
   baseHistos["DeepFlavourCvsLDisc_leadkin"]=new TH1F("DeepFlavourCvsLDisc_leadkin",";DeepFlavour CvsL Disc. leadkin;Jets",50,0,1.10);
   baseHistos["DeepFlavourCvsBDisc_leadkin"]=new TH1F("DeepFlavourCvsBDisc_leadkin",";DeepFlavour CvsB Disc. leadkin;Jets",50,0,1.10);
   baseHistos["DeepFlavourB_leadkin"]=new TH1F("DeepFlavourB_leadkin",";DeepFlavourB leadkin;Jets",50,0,1.10);
@@ -142,6 +149,11 @@ void TTbarEventAnalysis::prepareOutput(TString outFile)
   histos_["puwgtnorm"] = new TH1F("puwgtnorm", ";puwgtnorm;Events",              4, 0, 4);
   histos_["puwgtnorm"]->Sumw2();
   histos_["puwgtnorm"]->SetDirectory(outF_);
+
+  histos_["events"] = new TH1F("events", ";bins;Events",              4, 0, 4);
+  histos_["events"]->Sumw2();
+  histos_["events"]->SetDirectory(outF_);
+
 }
 
 Int_t TTbarEventAnalysis::checkFile(TString inFile)
@@ -170,6 +182,40 @@ void PrintMap(Map& m)
     cout << "]\n";
 }
 
+
+
+// Function that reads a histogram from a ROOT file
+TH1F* TTbarEventAnalysis::readHistogram(const char* fileName, const char* histogramName) {
+  // Open the ROOT file
+  TFile* file = new TFile(fileName, "READ");
+
+  // Check if the file is open successfully
+  if (!file || file->IsZombie()) {
+    std::cerr << "Error: Could not open file " << fileName << std::endl;
+    return nullptr;
+  }
+  
+  // Retrieve the original histogram from the file
+  TH1F* originalHistogram = dynamic_cast<TH1F*>(file->Get(histogramName));
+
+  //cout << "debug->1: " << originalHistogram->GetMean() << endl;
+  // Check if the original histogram is retrieved successfully
+  if (!originalHistogram) {
+    std::cerr << "Error: Could not retrieve histogram " << histogramName << " from file " << fileName << std::endl;
+    file->Close(); // Close the file in case of an error
+    return nullptr;
+  }
+
+  // Clone the original histogram
+  TH1F* clonedHistogram = dynamic_cast<TH1F*>(originalHistogram->Clone());
+  clonedHistogram->SetDirectory(0); // "detach" the histogram from the file
+  // Close the file (don't forget to do this to avoid memory leaks)
+  file->Close();
+
+  //cout << "debug->2: " <<clonedHistogram->GetMean() << endl;
+  return clonedHistogram;
+}
+
 //
 Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t isData)
 {
@@ -185,7 +231,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   TTree *newTree = (TTree *)inF->Get("sumw");
   //emni->Project("total_events>>h()")
 
-  /*map<string, double> XS_map = {{"MC13TeV_TTJets_DL_training", 72.6983,},
+  /*
+  map<string, double> XS_map = {{"MC13TeV_TTJets_DL_training", 72.6983,},
                                 {"MC13TeV_TTJets_AH_training", 316.466,},
                                 {"MC13TeV_TTJets_SL_training", 303.358,},
                                 {"MC13TeV_DY_M-10to50-MG", 15810.0,},
@@ -198,7 +245,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
                                 {"MC13TeV_WJetsToLNu", 52850.0,},
                                 {"MC13TeV_W1JetsToLNu", 8873.0,},
                                 {"MC13TeV_W2JetsToLNu", 2793.0,}};
-  PrintMap(XS_map);*/
+  PrintMap(XS_map);
+  */
 
   if (nentries == 0){
     inF->Close();
@@ -225,7 +273,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   {
     UInt_t LumiBlock,Run;
     ULong64_t Evt;
-    UChar_t npvs; // working but need to static_cast<int>(npvs)
+    Int_t npvs; // again changes in BTV_nano file
+    Int_t npvsGood;
     Int_t nSV,nTrack,Jet_nseltracks[100],Jet_SV_multi[100],Jet_nFirstSV[100],Jet_nLastSV[100],Jet_nFirstTrack[10000],Jet_nLastTrack[10000];
     Long64_t ttbar_trigWord, ttbar_lep_gid[10], ttbar_chan, Jet_flavour[100];
     Int_t   ttbar_metfilterWord;
@@ -240,10 +289,11 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     Float_t rho;
     Double_t Jet_genpt[100];
     Float_t Jet_pt[100],Jet_area[100],Jet_jes[100],Jet_eta[100],Jet_phi[100],Jet_mass[100];
+    Bool_t Jet_tightID[100];
     Float_t Jet_Svx[100],Jet_CombIVF[100],Jet_Proba[100],Jet_Ip2P[100];
     Float_t Jet_DeepCSVb[100], Jet_DeepCSVc[100], Jet_DeepCSVl[100], Jet_DeepCSVbN[100], Jet_DeepCSVcN[100], Jet_DeepCSVlN[100];
     Float_t Jet_DeepCSVBDisc[100],Jet_DeepCSVBDiscN[100],Jet_DeepCSVCvsLDisc[100],Jet_DeepCSVCvsLDiscN[100],Jet_DeepCSVCvsBDisc[100],Jet_DeepCSVCvsBDiscN[100];
-    Float_t Jet_DeepFlavourBDisc[100], Jet_DeepFlavourCvsLDisc[100], Jet_DeepFlavourCvsBDisc[100];
+    Float_t Jet_DeepFlavourBDisc[100], Jet_PNetBDisc[100], Jet_ParTBDisc[100], Jet_DeepFlavourCvsLDisc[100], Jet_DeepFlavourCvsBDisc[100];
     Float_t Jet_DeepFlavourB[100];
     Float_t Track_pt[10000];
     Float_t Jet_SoftMuN[1000],Jet_SoftMu[1000],Jet_CombIVF_N[100];
@@ -258,7 +308,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   tree->SetBranchAddress("Evt"        , &ev.Evt        );
   tree->SetBranchAddress("rho"        , &ev.rho        );
   tree->SetBranchAddress("LumiBlock"  , &ev.LumiBlock  );
-  tree->SetBranchAddress("npvs"       , &ev.npvs       ); //gkole fixme in v6: IMP
+  tree->SetBranchAddress("npvs"       , &ev.npvs       );
+  tree->SetBranchAddress("npvsGood"   , &ev.npvsGood   );
   tree->SetBranchAddress("nPU"        , &ev.nPU        );
   tree->SetBranchAddress("nPUtrue",     &ev.nPUtrue );
   tree->SetBranchAddress("ttbar_chan" , &ev.ttbar_chan);
@@ -286,9 +337,12 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   //tree->SetBranchAddress("Jet_jes",         ev.Jet_jes);
   tree->SetBranchAddress("Jet_eta",         ev.Jet_eta);
   tree->SetBranchAddress("Jet_phi",         ev.Jet_phi);
+  tree->SetBranchAddress("Jet_tightID",     ev.Jet_tightID);
   tree->SetBranchAddress("Jet_mass",        ev.Jet_mass);
   tree->SetBranchAddress("Jet_flavour",     ev.Jet_flavour);
   tree->SetBranchAddress("Jet_DeepFlavourBDisc", ev.Jet_DeepFlavourBDisc);
+  tree->SetBranchAddress("Jet_PNetBDisc", ev.Jet_PNetBDisc);
+  tree->SetBranchAddress("Jet_ParTBDisc", ev.Jet_ParTBDisc);
   tree->SetBranchAddress("Jet_DeepFlavourCvsLDisc", ev.Jet_DeepFlavourCvsLDisc);
   tree->SetBranchAddress("Jet_DeepFlavourCvsBDisc", ev.Jet_DeepFlavourCvsBDisc);
   //tree->SetBranchAddress("Jet_DeepFlavourB", ev.Jet_DeepFlavourB);
@@ -312,9 +366,21 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   cont.push_back(std::string(inFile).substr(previous, current - previous));
   std::string filenickname = cont.at(0);
   cout << "filenickname: " << filenickname << endl;
+  
   if(!isData){
     //SetPUWeightTarget("pileup_weights/pileupWgts2016.root",filenickname);
-    SetPUWeightTarget("pileup_weights/pileupWgts2018_preVFP.root",filenickname);
+    //SetPUWeightTarget("pileup_weights/pileupWgts2018_preVFP.root",filenickname); % it was running upto 6/12/2023 (2:50 pm)
+    //puWgtGr_ = readHistogram("pileup_weights/puwei_2022_preEE.histo.root","PU");
+    puWgtGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PU");
+    //cout << "puWgtGr_->GetMean():  " << puWgtGr_->GetMean() << endl;
+
+    //puWgtUpGr_ = readHistogram("pileup_weights/puwei_2022_preEE.histo.root","PUup");
+    puWgtUpGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PUup");
+    //cout << "puWgtUpGr_->GetMean():  " << puWgtUpGr_->GetMean() << endl;
+
+    //puWgtDownGr_ = readHistogram("pileup_weights/puwei_2022_preEE.histo.root","PUdown");
+    puWgtDownGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PUdown");
+    //cout << "puWgtDownGr_->GetMean():  " << puWgtDownGr_->GetMean() << endl;
   }
 
 
@@ -324,24 +390,28 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     cout << "total_events: " << total_events << endl;
   }
   
+  histos_["events"]->Fill(0., total_events);
+  
   int Event_i = 0;
 
   //nentries=100;
   for(Int_t i=Event_i; i<nentries; i++){
     tree->GetEntry(i);
     // gkole print something here
-    cout << "Event index " << i << endl;
+    if (i%1000 == 0) cout << "Event index " << i << endl;
     // cout << "# jets (all jets) = " << ev.nJet << endl;
+
     if(!isData){
       // From the pileup weights histogram made before running this code,
       // get the Data/MC pileup wgt using the integer number of pileup vertices .
-      if(puWgtGr_)     {puWgtNom = puWgtGr_->Eval(ev.nPU);}
-      if(puWgtDownGr_) {puWgtLo  = puWgtDownGr_->Eval(ev.nPU);}
-      if(puWgtUpGr_)   {puWgtHi  = puWgtUpGr_->Eval(ev.nPU);}
+      if(puWgtGr_)     {puWgtNom = puWgtGr_->GetBinContent(ev.nPU);}
+      if(puWgtDownGr_) {puWgtLo  = puWgtDownGr_->GetBinContent(ev.nPU);}
+      if(puWgtUpGr_)   {puWgtHi  = puWgtUpGr_->GetBinContent(ev.nPU);}
       if(puWgtNom<0)   {puWgtNom = 0;}
       if(puWgtLo <0)   {puWgtLo  = 0;}
       if(puWgtHi <0)   {puWgtHi  = 0;}
     }
+
     histos_["puwgtnorm" ]->Fill(0.,1.0);
     histos_["puwgtnorm" ]->Fill(1.,puWgtNom);
     histos_["puwgtnorm" ]->Fill(2.,puWgtLo);
@@ -528,16 +598,17 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       }
     }
     
-    if (1) cout << "gkole-fixme weight: " << evWgt << endl;
+    
+    if (0) cout << "gkole-fixme weight: " << evWgt << endl;
     if(!isData){
-      evWgt = 1.0;
+      evWgt = 1.0*puWgtNom;
     }
-    if (1) cout << "gkole (temporary) set evWgt to: " << evWgt << endl;
+    if (0) cout << "gkole (temporary) set evWgt = 1.0: " << evWgt << endl;
     histos_[ch+"_evsel"]->Fill("pre-sel",presel_evwgt);
     histos_[ch+"_npvinc"]->Fill(ev.npvs-1,presel_evwgt);
     int npvs_int = static_cast<int>(ev.npvs);
     //cout << "ev.npvs: " << ev.npvs << endl; // this is showing zero
-    cout << "npvs_int: " << npvs_int << endl;
+    if (0) cout << "npvs_int: " << npvs_int << endl;
     if (0) cout << "ev.nPU: " << ev.nPU << endl; 
     npv_=static_cast<int>(ev.npvs);
     
@@ -564,6 +635,9 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       float jet_minptcut = 30.;
       if(jp4.Pt()<jet_minptcut){continue;}
 
+      // tight jet id
+      if (not ev.Jet_tightID[ij]) continue;
+      
       // Cross clean jets wrt to leptons
       Float_t minDRlj(9999.);
       for(size_t il=0; il<2; il++) minDRlj = TMath::Min( (Float_t)minDRlj, (Float_t)lp4[il].DeltaR(jp4) );
@@ -721,7 +795,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     if(selJetsP4.size()==3){histos_[ch+"_evsel"]->Fill("=3j",evWgt);}
     if(selJetsP4.size()==4){histos_[ch+"_evsel"]->Fill("=4j",evWgt);}
 
-    histos_[ch+"_npv"]->Fill(static_cast<int>(ev.npvs)-1,evWgt);
+    histos_[ch+"_npv"]->Fill(ev.npvs-1,evWgt);
+    histos_[ch+"_npvGood"]->Fill(ev.npvsGood,evWgt);
     histos_[ch+"_mll"]->Fill(mll,evWgt);
     histos_[ch+"_njets"]->Fill(selJetsP4.size(),evWgt);
     histos_[ch+"_leadjpt"]->Fill(selJetsP4[0][0].Pt(),evWgt);
@@ -754,6 +829,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       //cout << "Jet_DeepFlavourBDisc for jidx " << jetIdx << " = " << ev.Jet_DeepFlavourBDisc[jetIdx] << endl;
       Int_t jetIdx(selJets[ij]);
       histos_[ch+"_DeepFlavourBDisc"]->Fill(ev.Jet_DeepFlavourBDisc[jetIdx],evWgt);
+      histos_[ch+"_PNetBDisc"]->Fill(ev.Jet_PNetBDisc[jetIdx],evWgt);
+      histos_[ch+"_ParTBDisc"]->Fill(ev.Jet_ParTBDisc[jetIdx],evWgt);
       histos_[ch+"_DeepFlavourCvsLDisc"]->Fill(ev.Jet_DeepFlavourCvsLDisc[jetIdx],evWgt);
       histos_[ch+"_DeepFlavourCvsBDisc"]->Fill(ev.Jet_DeepFlavourCvsBDisc[jetIdx],evWgt);
       //histos_[ch+"_DeepFlavourB"]->Fill(ev.Jet_DeepFlavourB[jetIdx],evWgt);
@@ -784,6 +861,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       for(size_t ij=0; ij<2; ij++){
         size_t jetIdx=leadingkindiscIdx[ij];
         histos_[ch+"_DeepFlavourBDisc_leadkin"]->Fill(ev.Jet_DeepFlavourBDisc[jetIdx],evWgt);
+	histos_[ch+"_PNetBDisc_leadkin"]->Fill(ev.Jet_PNetBDisc[jetIdx],evWgt);
+	histos_[ch+"_ParTBDisc_leadkin"]->Fill(ev.Jet_ParTBDisc[jetIdx],evWgt);
         histos_[ch+"_DeepFlavourCvsLDisc_leadkin"]->Fill(ev.Jet_DeepFlavourCvsLDisc[jetIdx],evWgt);
         histos_[ch+"_DeepFlavourCvsBDisc_leadkin"]->Fill(ev.Jet_DeepFlavourCvsBDisc[jetIdx],evWgt);
         //histos_[ch+"_DeepFlavourB_leadkin"]->Fill(ev.Jet_DeepFlavourB[jetIdx],evWgt);
@@ -863,6 +942,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       j2ll_deta_  =fabs(selJetsP4[ij][0].Eta()-dilepton.Eta());
       j2ll_dphi_  =fabs(selJetsP4[ij][0].DeltaPhi( dilepton ));
       DeepFlavourBDisc_[0]=ev.Jet_DeepFlavourBDisc[jetIdx];
+      PNetBDisc_[0]=ev.Jet_PNetBDisc[jetIdx];
+      ParTBDisc_[0]=ev.Jet_ParTBDisc[jetIdx];
       DeepFlavourCvsLDisc_[0]=ev.Jet_DeepFlavourCvsLDisc[jetIdx];
       DeepFlavourCvsBDisc_[0]=ev.Jet_DeepFlavourCvsBDisc[jetIdx];
       //DeepFlavourB_[0]=ev.Jet_DeepFlavourB[jetIdx];
@@ -879,6 +960,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
         jetEta_[ij]     = ev.Jet_eta[jetIdx];
         kinDisc_[ij]    = leadingkindisc[ij];
         DeepFlavourBDisc_[ij] = ev.Jet_DeepFlavourBDisc[jetIdx];
+	PNetBDisc_[ij] = ev.Jet_PNetBDisc[jetIdx];
+	ParTBDisc_[ij] = ev.Jet_ParTBDisc[jetIdx];
         DeepFlavourCvsLDisc_[ij] = ev.Jet_DeepFlavourCvsLDisc[jetIdx];
         DeepFlavourCvsBDisc_[ij] = ev.Jet_DeepFlavourCvsBDisc[jetIdx];
         //DeepFlavourB_[ij] = ev.Jet_DeepFlavourB[jetIdx];
@@ -893,14 +976,16 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   return 1;
 }
 
+
 std::pair<float,float> TTbarEventAnalysis::getTriggerEfficiency(int id1,float pt1,float eta1,int id2,float pt2,float eta2,int ch)
 {
   std::pair<float,float>res(1.0,0.0);
   if(ch==-11*13) { res.first=1.0; res.second=0.05; }
   if(ch==-11*11) { res.first=1.0; res.second=0.05; }
   if(ch==-13*13) { res.first=1.0; res.second=0.05; }
- return res;
+  return res;
 }
+
 
 // eµ channel trigger scale factors.
 std::pair<float,float> TTbarEventAnalysis::getTriggerScaleFactor(float pt1, float pt2, int ch, int trigger_index)
