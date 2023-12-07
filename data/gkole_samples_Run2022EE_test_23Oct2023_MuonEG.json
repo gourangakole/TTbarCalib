@@ -1,0 +1,5 @@
+{
+"MuonEGRun2022E-22Sep2022"         : [1.0, 1, "/MuonEG/Run2022E-22Sep2023-v1/NANOAOD", "Data", 1, false, false, 1],
+"MuonEGRun2022F-22Sep2022"         : [1.0, 1, "/MuonEG/Run2022F-22Sep2023-v1/NANOAOD", "Data", 1, false, false, 1],
+"MuonEGRun2022G-22Sep2022"         : [1.0, 1, "/MuonEG/Run2022G-22Sep2023-v1/NANOAOD", "Data", 1, false, false, 1]
+}
