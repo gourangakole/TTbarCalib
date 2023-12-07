@@ -8,7 +8,7 @@ import ROOT
 from Templated_btagEffFitter import SLICEVARTITLES
 #from rounding import toLatexRounded
 
-LUMI=19500.0#16810.0#59740.0#41530.00
+# LUMI=5.10*1000#16810.0#59740.0#41530.00
 SUMMARYCTR=0
 COLORS=[1,ROOT.kAzure+9,ROOT.kGreen-5,ROOT.kOrange-1] #,ROOT.kMagenta+2]
 MARKERS=[20,24,22,25]
@@ -188,7 +188,7 @@ def buildSFbSummary(inF,title,outDir):
 
 """
 """
-def produceSummaryFigures(sliceVar,summaryGr,output):
+def produceSummaryFigures(sliceVar,summaryGr,output, lumi):
 
     plotsToInclude=[]
 
@@ -261,10 +261,10 @@ def produceSummaryFigures(sliceVar,summaryGr,output):
         txt.SetTextFont(43)
         txt.SetTextSize(14)
         txt.SetTextAlign(12)
-        if LUMI<100:
-            txt.DrawLatex(0.18,0.95,'#bf{CMS} #it{Preliminary} %3.1f pb^{-1} (13 TeV)' % LUMI)
+        if lumi<100:
+            txt.DrawLatex(0.18,0.95,'#bf{CMS} #it{Preliminary} %3.1f pb^{-1} (13.6 TeV)' % lumi)
         else:
-            txt.DrawLatex(0.18,0.95,'#bf{CMS} #it{Preliminary} %3.1f fb^{-1} (13 TeV)' % (LUMI/1000.))
+            txt.DrawLatex(0.18,0.95,'#bf{CMS} #it{Preliminary} %3.1f fb^{-1} (13.6 TeV)' % (lumi/1000.))
 
         txt_1=ROOT.TLatex()
         txt_1.SetNDC(True)
@@ -279,6 +279,11 @@ def produceSummaryFigures(sliceVar,summaryGr,output):
             workingPoint_label = tagger_name[0] + ': Medium'
         if iop == 3:
             workingPoint_label = tagger_name[0] + ': Tight'
+        if iop == 4:
+            workingPoint_label = tagger_name[0] + ': VeryTight'
+        if iop == 5:
+            workingPoint_label = tagger_name[0] + ': SuperTight'
+            
         txt_1.DrawLatex(0.18,0.85, workingPoint_label)
 
         p2.cd()
@@ -408,6 +413,7 @@ def main():
     parser = optparse.OptionParser(usage)
     parser.add_option('-i', '--input',              dest='input',              help='input pickle files (csv list)',   default=None,  type='string')
     parser.add_option('-o', '--output',             dest='output',             help='output directory',                default=None,  type='string')
+    parser.add_option('-l', '--lumi',               dest='lumi',               help='integrated luminosity',          default=None,   type='float')##2022CD=8.1, 2022FGH=
     (opt, args) = parser.parse_args()
 
     #prepare output
@@ -419,7 +425,9 @@ def main():
 
     allInputs=opt.input.split(',')
     summaryTable,summaryGr,plotsToInclude={},{},{}
+    print ("allInputs: ", allInputs)
     for line in allInputs:
+        print ("debug 1: ", line)
         title,inF=line.split(':')
         print 'Input file: ', inF
         print 'title: ', title
@@ -434,7 +442,7 @@ def main():
         plotsToInclude[sliceVar]+=plots
 
     for sliceVar in summaryGr:
-        plotsToInclude[sliceVar] += produceSummaryFigures(sliceVar,summaryGr[sliceVar],opt.output)
+        plotsToInclude[sliceVar] += produceSummaryFigures(sliceVar,summaryGr[sliceVar],opt.output, opt.lumi)
 
     createReport(summaryTable,plotsToInclude,opt.output)
 
