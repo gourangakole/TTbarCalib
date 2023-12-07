@@ -47,6 +47,8 @@ TTbarFracFitter::TTbarFracFitter()
   workingPoint_labels[1] = "Loose";
   workingPoint_labels[2] = "Medium";
   workingPoint_labels[3] = "Tight";
+  workingPoint_labels[4] = "VeryTight";
+  workingPoint_labels[5] = "SuperTight";
 
   jetptRange_labels[0] = "(30 < p_{T} < 50 GeV)";
   jetptRange_labels[1] = "(50 < p_{T} < 70 GeV)";
@@ -334,25 +336,41 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
             if(NomSysupSysdown==2) mistagrate = DeepCSV_mistag_reader_tight.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
           }
         }
-        if(tagger=="DeepFlavourBDisc"){
+        if(tagger=="DeepFlavourBDisc" || tagger=="PNetBDisc" || tagger=="ParTBDisc"){
           if(workingPoint==1){
-            if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_loose.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
-            if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_loose.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
-            if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_loose.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+	    mistagrate = 0.10;
+            //if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_loose.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            //if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_loose.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            //if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_loose.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
           }
           if(workingPoint==2){
-            if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_medium.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
-            if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_medium.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
-            if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_medium.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+	    mistagrate = 0.01;
+            //if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_medium.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            //if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_medium.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            //if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_medium.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
           }
           if(workingPoint==3){
-            if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
-            if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
-            if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+	    mistagrate = 0.001;
+            //if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            //if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            //if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
           }
+	  if(workingPoint==4){
+	    mistagrate = 0.0005;
+	    //if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            //if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            //if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+	  }
+	  if(workingPoint==5){
+	    mistagrate = 0.0001;
+	    //if(NomSysupSysdown==0) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("central",BTagEntry::FLAV_UDSG,1.0,m);
+            //if(NomSysupSysdown==1) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("up",BTagEntry::FLAV_UDSG,1.0,m);
+            //if(NomSysupSysdown==2) mistagrate = DeepJet_mistag_reader_tight.eval_auto_bounds("down",BTagEntry::FLAV_UDSG,1.0,m);
+	  }
+
         }
 
-        //cout << "Reader: " << tagger << " variation " << NomSysupSysdown << " working point " << workingPoint << " mistagsf = " << mistagrate << endl;
+        cout << "Reader: " << tagger << " variation " << NomSysupSysdown << " working point " << workingPoint << " mistagsf = " << mistagrate << endl;
 
         /*mistagrate = 1;
         if(tagger=="DeepCSVBDisc"){
@@ -391,6 +409,7 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
         }
         cout << "Hard-coded: " << tagger << " variation " << NomSysupSysdown << " working point " << workingPoint << " mistagsf = " << mistagrate << endl;*/
 
+	
         RooArgSet passPDFs,passCounts,passNonPOIPDFs,failPDFs,failCounts,sfVars,failNonPOIPDFs;
         for(int i=0; i<passTemplates.GetEntriesFast(); i++)
         {
@@ -532,7 +551,7 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
                 TString wp_lable = workingPoint_labels[workingPoint];
                 TString jpt_label = i==0 ? "tagged jets " : "vetoed jets ";
                 jpt_label += jetptRange_labels[jetptRange];
-                label->DrawLatex(0.54,0.94, Form("#scale[0.95]{%.2f fb^{-1} (13 TeV)}",lumi));
+                label->DrawLatex(0.54,0.94, Form("#scale[0.95]{%.2f fb^{-1} (13.6 TeV)}",lumi));
                 label->DrawLatex(0.18,0.94, "#bf{CMS}");
                 label->DrawLatex(0.54,0.90, tagger_label);
                 label->DrawLatex(0.54,0.86, wp_lable);
