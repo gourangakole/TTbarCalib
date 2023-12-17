@@ -8,6 +8,7 @@ import ROOT
 from Templated_btagEffFitter import SLICEVARTITLES
 #from rounding import toLatexRounded
 
+
 # LUMI=5.10*1000#16810.0#59740.0#41530.00
 SUMMARYCTR=0
 COLORS=[1,ROOT.kAzure+9,ROOT.kGreen-5,ROOT.kOrange-1] #,ROOT.kMagenta+2]
@@ -53,7 +54,12 @@ def buildSFbSummary(inF,title,outDir):
 
     # see https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagCalibration#Example_code_in_Python
     sliceVarName=fitInfo['slicevar']
-    btvCalib = ROOT.BTagCalibration(title) if sliceVarName=='jetpt' else None
+    print ("gkole -> 0")
+    print ("title", title)
+    btvCalib = ROOT.BTagCalibration (title)
+
+    # btvCalib = ROOT.BTagCalibration(title) if sliceVarName=='jetpt' else None
+
 
     #prepare graphs
     summaryGrs={}
@@ -121,26 +127,34 @@ def buildSFbSummary(inF,title,outDir):
             effTotalUnc=math.sqrt(effObsUnc**2+effSystUnc**2)
             #additional_flat_ttbar_effsysunc = effSystUnc * 1.5
             #effTotalUnc=math.sqrt(effObsUnc**2+effSystUnc**2+additional_flat_ttbar_effsysunc**2)
+            
+            # iop-1: Loose
+            if (iop == 1): OPtag = 'loose'
+            elif (iop == 2): OPtag = 'medium'
+            elif (iop == 3): OPtag = 'tight'
+            elif (iop == 4): OPtag = 'verytight'
+            elif (iop == 5): OPtag = 'supertight'
+            else: print ("no such iop")
 
             #report
             if sliceVarName=='jetpt':
-                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'central', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, 'kinfit', 'central', 5, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb),btvCalibParams)
                 btvCalib.addEntry(entry)
-                #btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'up_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
-                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'up', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                #btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, 'kinfit', 'up_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, 'kinfit', 'up', 5, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb+sfbTotalUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
                 #btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'down_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
-                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'down', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, 'kinfit', 'down', 5, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb-sfbTotalUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
                 #btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'up_statistics', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
-                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'up_statistic', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, 'kinfit', 'up_statistic', 5, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb+sfbStatUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
                 #btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'down_statistics', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
-                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, title, 'down_statistic', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(iop-1, 'kinfit', 'down_statistic', 5, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb-sfbStatUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
 
@@ -422,6 +436,10 @@ def main():
     #os.system('ln -s $CMSSW_RELEASE_BASE/src/RecoBTag/PerformanceDB/test/BTagCalibrationStandalone.cc')
     #os.system('ln -s $CMSSW_RELEASE_BASE/src/RecoBTag/PerformanceDB/test/BTagCalibrationStandalone.h')
     #ROOT.gROOT.ProcessLine('.L BTagCalibrationStandalone_CMSSW_8_0_2.cc+')
+    
+    # using standalone code:
+    ROOT.gROOT.ProcessLine('.L BTagCalibrationStandalone.cpp+')
+
 
     allInputs=opt.input.split(',')
     summaryTable,summaryGr,plotsToInclude={},{},{}
