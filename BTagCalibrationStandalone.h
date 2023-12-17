@@ -35,7 +35,8 @@ public:
     FLAV_UDSG=2,
   };
   struct Parameters {
-    OperatingPoint operatingPoint;
+    //OperatingPoint operatingPoint;
+    std::string operatingPoint;
     std::string measurementType;
     std::string sysType;
     JetFlavor jetFlavor;
@@ -48,7 +49,8 @@ public:
 
     // default constructor
     Parameters(
-      OperatingPoint op=OP_TIGHT,
+	       //OperatingPoint op=OP_TIGHT,
+      std::string op="L",
       std::string measurement_type="comb",
       std::string sys_type="central",
       JetFlavor jf=FLAV_B,
@@ -156,7 +158,7 @@ public:
   class BTagCalibrationReaderImpl;
 
   BTagCalibrationReader() {}
-  BTagCalibrationReader(BTagEntry::OperatingPoint op,
+  BTagCalibrationReader(const std::string & op="L", //BTagEntry::OperatingPoint op,
                         const std::string & sysType="central",
                         const std::vector<std::string> & otherSysTypes={});
 

@@ -6,7 +6,8 @@
 
 
 BTagEntry::Parameters::Parameters(
-  OperatingPoint op,
+				  //OperatingPoint 
+  std::string op,
   std::string measurement_type,
   std::string sys_type,
   JetFlavor jf,
@@ -88,7 +89,8 @@ std::cerr << "ERROR in BTagCalibration: "
 throw std::exception();
   }
   params = BTagEntry::Parameters(
-    BTagEntry::OperatingPoint(op),
+				 //BTagEntry::OperatingPoint(op),
+				 vec[0],				 
     vec[1],
     vec[2],
     BTagEntry::JetFlavor(jf),
@@ -225,10 +227,10 @@ throw std::exception();
 
 std::string BTagEntry::makeCSVHeader()
 {
-  return "OperatingPoint, "
-         "measurementType, "
-         "sysType, "
-         "jetFlavor, "
+  return "wp, "
+         "type, "
+         "syst, "
+         "flav, "
          "etaMin, "
          "etaMax, "
          "ptMin, "
@@ -336,7 +338,8 @@ void BTagCalibration::readCSV(std::istream &s)
 
 void BTagCalibration::makeCSV(std::ostream &s) const
 {
-  s << tagger_ << ";" << BTagEntry::makeCSVHeader();
+  //s << tagger_ << ";" << BTagEntry::makeCSVHeader(); // gkole
+  s << BTagEntry::makeCSVHeader(); // gkole
   for (std::map<std::string, std::vector<BTagEntry> >::const_iterator i
            = data_.cbegin(); i != data_.cend(); ++i) {
     const std::vector<BTagEntry> &vec = i->second;
@@ -382,7 +385,7 @@ public:
   };
 
 private:
-  BTagCalibrationReaderImpl(BTagEntry::OperatingPoint op,
+  BTagCalibrationReaderImpl(const std::string & op, //BTagEntry::OperatingPoint op,
                             const std::string & sysType,
                             const std::vector<std::string> & otherSysTypes={});
 
@@ -408,7 +411,8 @@ private:
   std::pair<float, float> min_max_eta(BTagEntry::JetFlavor jf,
                                      float discr) const;
 
-  BTagEntry::OperatingPoint op_;
+  //BTagEntry::OperatingPoint op_;
+  std::string op_;
   std::string sysType_;
   std::vector<std::vector<TmpEntry> > tmpData_;  // first index: jetFlavor
   std::vector<bool> useAbsEta_;                  // first index: jetFlavor
@@ -417,7 +421,8 @@ private:
 
 
 BTagCalibrationReader::BTagCalibrationReaderImpl::BTagCalibrationReaderImpl(
-                                             BTagEntry::OperatingPoint op,
+									    //BTagEntry::OperatingPoint op,
+					     const std::string & op,
                                              const std::string & sysType,
                                              const std::vector<std::string> & otherSysTypes):
   op_(op),
@@ -641,7 +646,7 @@ std::pair<float, float> BTagCalibrationReader::BTagCalibrationReaderImpl::min_ma
 }
 
 
-BTagCalibrationReader::BTagCalibrationReader(BTagEntry::OperatingPoint op,
+BTagCalibrationReader::BTagCalibrationReader(const std::string & op, //BTagEntry::OperatingPoint op,
                                              const std::string & sysType,
                                              const std::vector<std::string> & otherSysTypes):
   pimpl(new BTagCalibrationReaderImpl(op, sysType, otherSysTypes)) {}
