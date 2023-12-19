@@ -138,23 +138,23 @@ def buildSFbSummary(inF,title,outDir):
 
             #report
             if sliceVarName=='jetpt':
-                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, 'kinfit', 'central', 5, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','central',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb),btvCalibParams)
                 btvCalib.addEntry(entry)
                 #btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, 'kinfit', 'up_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
-                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, 'kinfit', 'up', 5, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','up',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb+sfbTotalUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
                 #btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, title, 'down_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
-                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, 'kinfit', 'down', 5, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','down',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb-sfbTotalUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
                 #btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, title, 'up_statistics', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
-                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, 'kinfit', 'up_statistic', 5, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','up_statistic',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb+sfbStatUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
                 #btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, title, 'down_statistics', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
-                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, 'kinfit', 'down_statistic', 5, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','down_statistic',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb-sfbStatUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
 

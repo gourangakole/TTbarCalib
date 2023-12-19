@@ -227,33 +227,33 @@ throw std::exception();
 
 std::string BTagEntry::makeCSVHeader()
 {
-  return "wp, "
-         "type, "
-         "syst, "
-         "flav, "
-         "etaMin, "
-         "etaMax, "
-         "ptMin, "
-         "ptMax, "
-         "discrMin, "
-         "discrMax, "
-         "formula \n";
+  return "wp,"
+         "type,"
+         "syst,"
+         "flav,"
+         "etaMin,"
+         "etaMax,"
+         "ptMin,"
+         "ptMax,"
+         "discrMin,"
+         "discrMax,"
+         "formula\n";
 }
 
 std::string BTagEntry::makeCSVLine() const
 {
   std::stringstream buff;
   buff << params.operatingPoint
-       << ", " << params.measurementType
-       << ", " << params.sysType
-       << ", " << params.jetFlavor
-       << ", " << params.etaMin
-       << ", " << params.etaMax
-       << ", " << params.ptMin
-       << ", " << params.ptMax
-       << ", " << params.discrMin
-       << ", " << params.discrMax
-       << ", \"" << formula
+       << "," << params.measurementType
+       << "," << params.sysType
+       << "," << params.jetFlavor
+       << "," << params.etaMin
+       << "," << params.etaMax
+       << "," << params.ptMin
+       << "," << params.ptMax
+       << "," << params.discrMin
+       << "," << params.discrMax
+       << ",\"" << formula
        << "\" \n";
   return buff.str();
 }
