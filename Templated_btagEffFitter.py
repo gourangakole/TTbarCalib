@@ -22,8 +22,11 @@ SLICEVARTITLES={
 SLICEVAR   = 'jetpt'
 #SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 # Updated:
-SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
-#SYSTVARS   = ['']
+#SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
+#gkole try
+SYSTVARS   = ['']# ,'jesup','jesdn']
+#SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
+
 """
 Project trees from files to build the templates
 """
@@ -88,17 +91,20 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
     for f in files:
         if 'training' in f:
             continue
-        key = 'mc' if 'MC' in f else 'data'
+        # key = 'mc' if 'MC' in f else 'data' # this was Josh's setup
+        # key = 'mc' if 'TTtoLNu2Q' in f else 'data' #gkole try (02Nov2023)
+        key = 'mc' if 'TTto2L2Nu' in f else 'data' #gkole try (15Nov2023)
         if TT_syst != 'nominal' and 'MC13TeV_TTJets' in f:
             dir_file_name = syst_TT_inDir+'/'+f
             chains[key].Add(dir_file_name)
         else:
             dir_file_name=inDir+'/'+f
+            print ("key", key, "and file", dir_file_name)
             chains[key].Add(dir_file_name)
-
+    
     # Fill histos
     for key in chains:
-        print key , '\n'
+        # print ("Loop over key: ", key)
         nentries=chains[key].GetEntries()
         print 'Starting with %s containing %d entries'%(key,nentries)
 
@@ -115,10 +121,12 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
 
             # Restrict jet multiplicity (one entry in kin tree)
             njets=chains[key].jetmult
-            #print 'Entry: %s , njets: %s ' % (i, njets)
+            if 0:
+                print "gkole debug-> 0:"
+                print 'Entry: %s , njets: %s ' % (i, njets)
 
             if njets<2 or njets>4 : continue
-            #print 'SYSTVARS: ', SYSTVARS
+            # print 'SYSTVARS: ', SYSTVARS
             for systVar in SYSTVARS:
 
                 if key=='data' and len(systVar)>0 : continue
@@ -159,26 +167,31 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
 
                 # No need to proceed if event is not selected
                 if weight==0: continue
-
+                if 0:
+                    print ("gkole debug-> 1:")
+                    print ("weight", weight)
                 # Variable to slice on
                 sliceVarVal  = getattr(chains[key],SLICEVAR)
                 # variable to be fit
                 varVal[0]    = getattr(chains[key],var)      if var=='jpTagger'   else getattr(chains[key],var)[systIdx]
 
-                #print 'var: %s , tagger: %s' % (var,tagger)
+                # print 'var: %s , tagger: %s' % (var,tagger)
 
-                # Tagger to apply
+                # Tagger to apply  
+                # print "tagger: ", tagger
+                # print "att of chains[key]", dir(chains[key])
                 taggerVal[0] = getattr(chains[key],tagger)
 
                 #determine categories
-                #print 'sliceVarVal: ', sliceVarVal
+                #print "taggerVal[0] ",taggerVal[0] 
+                # print 'sliceVarVal: ', sliceVarVal
                 for islice in xrange(0,len(SLICEBINS[SLICEVAR])):
                     passSlice[islice]=0
                     if sliceVarVal<=SLICEBINS[SLICEVAR][islice][0] or sliceVarVal>SLICEBINS[SLICEVAR][islice][1] : continue
                     #print 'passed %s < jet pt < %s' % (SLICEBINS[SLICEVAR][islice][0], SLICEBINS[SLICEVAR][islice][1])
                     passSlice[islice]=1
 
-                #print 'passSlice: ', passSlice
+                # print 'passSlice: ', passSlice
                 #assign flavour
                 flav='other'
                 if abs(chains[key].flavour)==5: flav='b'
@@ -197,15 +210,15 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                         histos[hkey].Fill(normVarVal,weight)
 
                     hkey='%s_pass0_slice%d%s'%(flav,islice,systVar)
-                    #print 'Filling %s with normVarVal %s ' % (hkey,normVarVal)
+                    # print 'Filling %s with normVarVal %s ' % (hkey,normVarVal) #gkole: 04/12/2023
                     histos[hkey].Fill(normVarVal,weight)
 
                     # Check to see if jet passed/failed the btag cut and fill appropriate histogram.
                     for iop in xrange(2,len(taggerDef)-1):
                         status='fail' if taggerVal[0] < taggerDef[iop] else 'pass'
                         hkey='%s_%s%d_slice%d%s'%(flav,status,iop-1,islice,systVar)
-                        #print 'Check if jet passed/failed btag cut: taggerVal[0] = %s , taggerDef[iop] = %s' % (taggerVal[0], taggerDef[iop])
-                        #print 'Filling %s with normVarValJetBins %s ' % (hkey,normVarValJetBins)
+                        # print 'Check if jet passed/failed btag cut: taggerVal[0] = %s , taggerDef[iop] = %s' % (taggerVal[0], taggerDef[iop])
+                        # print 'Filling %s with normVarValJetBins %s ' % (hkey,normVarValJetBins)
                         histos[hkey].Fill(normVarValJetBins,weight)
 
                 #fill histo for data
@@ -352,20 +365,22 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
                 # Always fill nominal first and save results of fit in sfMeasurements(effMeasurements) etc.
                 if len(syst)==0:
                     # Nominal variation
+                    # print "GKOLE --> mc['pass']:   " , type(mc['pass'])
+                    # print "GKOLE --> data['pass']: " , type(data['pass'])
                     res=ttFracFitter.fit(mc['pass'],data['pass'],mc['fail'],data['fail'],Tagger,0,iop,islice,0,saveResultIn,lumi/1000.)
                     sfMeasurements[iop][islice]=(res.sf,res.sfUnc)
                     effMeasurements[iop][islice]=(res.eff,res.effUnc)
                     effExpected[iop][islice]=(res.effExp,res.effExpUnc)
                     # Up variation
                     res=ttFracFitter.fit(mc['pass'],data['pass'],mc['fail'],data['fail'],Tagger,0,iop,islice,1)
-                    #systUncs[iop][islice]['closureup']=res.sf-sfMeasurements[iop][islice][0]
-                    #effUncs[iop][islice]['closureup']=res.eff-effMeasurements[iop][islice][0]
+                    systUncs[iop][islice]['closureup']=res.sf-sfMeasurements[iop][islice][0] #gkole it was commented out
+                    effUncs[iop][islice]['closureup']=res.eff-effMeasurements[iop][islice][0] #gkole it was commented out
                     systUncs[iop][islice]['mistagup']=res.sf-sfMeasurements[iop][islice][0]
                     effUncs[iop][islice]['mistagup']=res.eff-effMeasurements[iop][islice][0]
                     # Down variation
                     res=ttFracFitter.fit(mc['pass'],data['pass'],mc['fail'],data['fail'],Tagger,0,iop,islice,2)
-                    #systUncs[iop][islice]['mistagdn']=res.sf-sfMeasurements[iop][islice][0]
-                    #effUncs[iop][islice]['mistagdn']=res.eff-effMeasurements[iop][islice][0]
+                    systUncs[iop][islice]['mistagdn']=res.sf-sfMeasurements[iop][islice][0] #gkole it was commented out
+                    effUncs[iop][islice]['mistagdn']=res.eff-effMeasurements[iop][islice][0] #gkole it was commented out
                     systUncs[iop][islice]['closuredn']=res.sf-sfMeasurements[iop][islice][0]
                     effUncs[iop][islice]['closuredn']=res.eff-effMeasurements[iop][islice][0]
                 else:# After nominal, compare with fits using systematic templates to obtain uncertainties.
@@ -389,7 +404,9 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
     pickle.dump(effExpected, cachefile, pickle.HIGHEST_PROTOCOL)
     pickle.dump(effMeasurements, cachefile, pickle.HIGHEST_PROTOCOL)
     pickle.dump(sfMeasurements, cachefile, pickle.HIGHEST_PROTOCOL)
+    print ("systUncs: ", systUncs)
     pickle.dump(systUncs, cachefile, pickle.HIGHEST_PROTOCOL)
+    print ("effUncs: ", effUncs)
     pickle.dump(effUncs, cachefile, pickle.HIGHEST_PROTOCOL)
     cachefile.close()
     print 'Fit results have been stored in %s'%cache
