@@ -22,9 +22,8 @@ SLICEVARTITLES={
 SLICEVAR   = 'jetpt'
 #SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 # Updated:
-#SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
-#gkole try
-SYSTVARS   = ['']# ,'jesup','jesdn']
+# gkole try
+SYSTVARS   = ['','jesup','jesdn','jerup','jerdn']
 #SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 
 """
@@ -86,14 +85,27 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
         files = [ f for f in os.listdir(inDir) if '.root' in f ]
 
     print('files: ', files)
-    chains={'mc':ROOT.TChain('kin'),'data':ROOT.TChain('kin')}
+    chains={'mc':ROOT.TChain('kin'), 'mcjesup':ROOT.TChain('kin'), 'mcjesdn':ROOT.TChain('kin'), 'mcjerup':ROOT.TChain('kin'), 'mcjerdn':ROOT.TChain('kin'), 'data':ROOT.TChain('kin')}
 
     for f in files:
         if 'training' in f:
             continue
         # key = 'mc' if 'MC' in f else 'data' # this was Josh's setup
         # key = 'mc' if 'TTtoLNu2Q' in f else 'data' #gkole try (02Nov2023)
-        key = 'mc' if 'TTto2L2Nu' in f else 'data' #gkole try (15Nov2023)
+        # key = 'mc' if 'TTto2L2Nu' in f else 'data'
+        if ('TTto2L2Nu' in f and 'jesup' in f):
+            key = 'mcjesup'
+        elif ('TTto2L2Nu' in f and 'jesdn' in f):
+            key = 'mcjesdn'
+        elif ('TTto2L2Nu' in f and 'jerup' in f):
+            key = 'mcjerup'
+        elif ('TTto2L2Nu' in f and 'jerdn' in f):
+            key = 'mcjerdn'
+        elif ('TTto2L2Nu' in f and not 'jesup' in f and not 'jesdn' in f and not 'jerup' in f and not 'jerdn' in f):
+            key = 'mc'
+        else:
+            key = 'data'
+
         if TT_syst != 'nominal' and 'MC13TeV_TTJets' in f:
             dir_file_name = syst_TT_inDir+'/'+f
             chains[key].Add(dir_file_name)
@@ -128,15 +140,22 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
             if njets<2 or njets>4 : continue
             # print 'SYSTVARS: ', SYSTVARS
             for systVar in SYSTVARS:
-
                 if key=='data' and len(systVar)>0 : continue
-
+                if key == 'mc' and systVar != '': continue
+                if key == 'mcjesup' and systVar != 'jesup': continue
+                if key == 'mcjesdn' and systVar != 'jesdn': continue
+                if key == 'mcjerup' and systVar != 'jerup': continue
+                if key == 'mcjerdn' and systVar != 'jerdn': continue
+                # if systVar =='' and key != 'mc': continue
+                # if systVar =='jesup' and key != 'mcjesup': continue
+                # if systVar =='jesdn' and key != 'mcjesdn': continue
+                # print ("key= ", key," & systVar= ", systVar)
                 # Get alternative events weights for systemtics constructed from weight variations
                 wgtIdx, systIdx = 0, 0
-                if systVar=='jesup'      : wgtIdx, systIdx = 1,  1
-                if systVar=='jesdn'      : wgtIdx, systIdx = 2,  2
-                if systVar=='jerup'      : wgtIdx, systIdx = 3,  3
-                if systVar=='jerdn'      : wgtIdx, systIdx = 4,  4
+                # if systVar=='jesup'      : wgtIdx, systIdx = 1,  1
+                # if systVar=='jesdn'      : wgtIdx, systIdx = 2,  2
+                # if systVar=='jerup'      : wgtIdx, systIdx = 3,  3
+                # if systVar=='jerdn'      : wgtIdx, systIdx = 4,  4
                 #if systVar=='pudn'       : wgtIdx, systIdx = 5,  0
                 if systVar=='pileupdn'       : wgtIdx, systIdx = 5,  0
                 #if systVar=='puup'       : wgtIdx, systIdx = 6,  0
@@ -173,7 +192,9 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                 # Variable to slice on
                 sliceVarVal  = getattr(chains[key],SLICEVAR)
                 # variable to be fit
+                
                 varVal[0]    = getattr(chains[key],var)      if var=='jpTagger'   else getattr(chains[key],var)[systIdx]
+                # print ("varVal[0]", varVal[0])
 
                 # print 'var: %s , tagger: %s' % (var,tagger)
 
@@ -389,6 +410,9 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
                     #systUncs[iop][islice][syst]=res.sf-1.0
                     res=ttFracFitter.fit(mc['pass'],data['pass'],mc['fail'],data['fail'],Tagger,0,iop,islice,0)
                     systUncs[iop][islice][syst]=res.sf-sfMeasurements[iop][islice][0]
+                    print ("syst", syst)
+                    print ("res.sf", res.sf)
+                    print ("sfMeasurements[iop][islice][0]", sfMeasurements[iop][islice][0])
                     effUncs[iop][islice][syst]=res.eff-effMeasurements[iop][islice][0]
 
     #all fits done
