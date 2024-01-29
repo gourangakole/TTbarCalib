@@ -254,7 +254,7 @@ std::string BTagEntry::makeCSVLine() const
        << "," << params.discrMin
        << "," << params.discrMax
        << ",\"" << formula
-       << "\" \n";
+       << "\"\n";
   return buff.str();
 }
 
