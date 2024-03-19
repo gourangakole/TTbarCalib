@@ -604,6 +604,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       evWgt = 1.0*puWgtNom;
     }
     if (0) cout << "gkole (temporary) set evWgt = 1.0: " << evWgt << endl;
+
     histos_[ch+"_evsel"]->Fill("pre-sel",presel_evwgt);
     histos_[ch+"_npvinc"]->Fill(ev.npvs-1,presel_evwgt);
     int npvs_int = static_cast<int>(ev.npvs);
@@ -887,7 +888,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       weight_[iSystVar]=evWgt*selWeight;
     } // gkole (try to understand weight)
     weight_[5] = puWgtNom>0 ? evWgt*puWgtLo/puWgtNom : evWgt;
-    weight_[6] = puWgtLo>0  ? evWgt*puWgtHi/puWgtNom : evWgt;
+    weight_[6] = puWgtNom>0 ? evWgt*puWgtHi/puWgtNom : evWgt;
     weight_[7] = evWgt*trigWgtLo/trigWgtNom;
     weight_[8] = evWgt*trigWgtHi/trigWgtNom;
     weight_[9] = evWgt*lepIDSFLo/lepIDSFNom;
