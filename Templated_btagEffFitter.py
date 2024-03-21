@@ -23,7 +23,7 @@ SLICEVAR   = 'jetpt'
 #SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 # Updated:
 # gkole try
-SYSTVARS   = ['','jesup','jesdn','jerup','jerdn']
+SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn']
 #SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 
 """
@@ -138,10 +138,10 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                 print 'Entry: %s , njets: %s ' % (i, njets)
 
             if njets<2 or njets>4 : continue
-            # print 'SYSTVARS: ', SYSTVARS
+            # print ('SYSTVARS: ', SYSTVARS)
             for systVar in SYSTVARS:
                 if key=='data' and len(systVar)>0 : continue
-                if key == 'mc' and systVar != '': continue
+                #if key == 'mc' and systVar != '': continue
                 if key == 'mcjesup' and systVar != 'jesup': continue
                 if key == 'mcjesdn' and systVar != 'jesdn': continue
                 if key == 'mcjerup' and systVar != 'jerup': continue
@@ -160,27 +160,27 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                 if systVar=='pileupdn'       : wgtIdx, systIdx = 5,  0
                 #if systVar=='puup'       : wgtIdx, systIdx = 6,  0
                 if systVar=='pileupup'       : wgtIdx, systIdx = 6,  0
-                if systVar=='trigdn'     : wgtIdx, systIdx = 7,  0
-                if systVar=='trigup'     : wgtIdx, systIdx = 8,  0
-                if systVar=='seldn'      : wgtIdx, systIdx = 9,  0
-                if systVar=='selup'      : wgtIdx, systIdx = 10, 0
-                if systVar=='qcdscaledn' : wgtIdx, systIdx = 11, 0
-                if systVar=='qcdscaleup' : wgtIdx, systIdx = 12, 0
-                #if systVar=='hdampdn'    : wgtIdx, systIdx = 13, 0
-                #if systVar=='hdampup'    : wgtIdx, systIdx = 14, 0
-                #if systVar=='isrReddn'    : wgtIdx, systIdx = 15, 0
-                #if systVar=='isrRedup'    : wgtIdx, systIdx = 16, 0
-                #if systVar=='fsrReddn'    : wgtIdx, systIdx = 17, 0
-                #if systVar=='fsrRedup'    : wgtIdx, systIdx = 18, 0
-                if systVar=='isrDefdn'    : wgtIdx, systIdx = 19, 0
-                if systVar=='isrDefup'    : wgtIdx, systIdx = 20, 0
-                if systVar=='fsrDefdn'    : wgtIdx, systIdx = 21, 0
-                if systVar=='fsrDefup'    : wgtIdx, systIdx = 22, 0
+                #if systVar=='trigdn'     : wgtIdx, systIdx = 7,  0
+                #if systVar=='trigup'     : wgtIdx, systIdx = 8,  0
+                #if systVar=='seldn'      : wgtIdx, systIdx = 9,  0
+                #if systVar=='selup'      : wgtIdx, systIdx = 10, 0
+                #if systVar=='qcdscaledn' : wgtIdx, systIdx = 11, 0
+                #if systVar=='qcdscaleup' : wgtIdx, systIdx = 12, 0
+                ##if systVar=='hdampdn'    : wgtIdx, systIdx = 13, 0
+                ##if systVar=='hdampup'    : wgtIdx, systIdx = 14, 0
+                ##if systVar=='isrReddn'    : wgtIdx, systIdx = 15, 0
+                ##if systVar=='isrRedup'    : wgtIdx, systIdx = 16, 0
+                ##if systVar=='fsrReddn'    : wgtIdx, systIdx = 17, 0
+                ##if systVar=='fsrRedup'    : wgtIdx, systIdx = 18, 0
+                #if systVar=='isrDefdn'    : wgtIdx, systIdx = 19, 0
+                #if systVar=='isrDefup'    : wgtIdx, systIdx = 20, 0
+                #if systVar=='fsrDefdn'    : wgtIdx, systIdx = 21, 0
+                #if systVar=='fsrDefup'    : wgtIdx, systIdx = 22, 0
                 #if systVar=='isrCondn'    : wgtIdx, systIdx = 23, 0
                 #if systVar=='isrConup'    : wgtIdx, systIdx = 24, 0
                 #if systVar=='fsrCondn'    : wgtIdx, systIdx = 25, 0
                 #if systVar=='fsrConup'    : wgtIdx, systIdx = 26, 0
-
+                # print ("wgtIdx=  ", wgtIdx)
                 #Event weight
                 weight      = chains[key].weight[wgtIdx]
 
