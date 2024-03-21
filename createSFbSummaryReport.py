@@ -102,20 +102,8 @@ def buildSFbSummary(inF,title,outDir):
             sfb,sfbStatUnc   = sfbMeasurement[iop][islice]
             sfbSystUnc       = 0#sfbStatUnc**2
             effSystUnc = 0
-            for syst in systUncs[iop][islice]:
-                if len(syst)==0 : continue
-                if syst.endswith('dn') : continue
-                syst=syst[:-2]
-                sfbUncUp = systUncs[iop][islice][syst+'up']
-                sfbUncDn = systUncs[iop][islice][syst+'dn']
-                sfbSystUnc += (0.5*(math.fabs(sfbUncUp)+math.fabs(sfbUncDn)))**2
-                #systTable.append( ('~~~{\\small \\it %s}'%syst,'${\\small %.1g / %.1g }$'%(sfbUncUp,sfbUncDn)) )
-                systTable.append( ('~~~{\\small %s}'%syst,'${ %.3f / %.3f }$'%(sfbUncUp,sfbUncDn)) )
-            sfbSystUnc=math.sqrt(sfbSystUnc)
-            sfbTotalUnc=math.sqrt(sfbStatUnc**2+sfbSystUnc**2)
-            #additional_flat_ttbar_sfbsysunc = sfbSystUnc * 1.5
-            #sfbTotalUnc=math.sqrt(sfbStatUnc**2+sfbSystUnc**2+additional_flat_ttbar_sfbsysunc**2)
-
+            string_list = ['jes','jer','pileup']
+            
             for syst in effsystUncs[iop][islice]:
                 if len(syst)==0 : continue
                 if syst.endswith('dn') : continue
@@ -125,46 +113,108 @@ def buildSFbSummary(inF,title,outDir):
                 effSystUnc += (0.5*(math.fabs(effUncUp)+math.fabs(effUncDn)))**2
             effSystUnc = math.sqrt(effSystUnc)
             effTotalUnc=math.sqrt(effObsUnc**2+effSystUnc**2)
-            #additional_flat_ttbar_effsysunc = effSystUnc * 1.5
-            #effTotalUnc=math.sqrt(effObsUnc**2+effSystUnc**2+additional_flat_ttbar_effsysunc**2)
             
+            for syst in systUncs[iop][islice]:
+                if len(syst)==0 : continue
+                if syst.endswith('dn') : continue
+                syst=syst[:-2]
+                sfbUncUp = systUncs[iop][islice][syst+'up']
+                sfbUncDn = systUncs[iop][islice][syst+'dn']
+                sfbSystUnc += (0.5*(math.fabs(sfbUncUp)+math.fabs(sfbUncDn)))**2
+            sfbSystUnc=math.sqrt(sfbSystUnc)
+            sfbTotalUnc=math.sqrt(sfbStatUnc**2+sfbSystUnc**2)
+
             # iop-1: Loose
-            if (iop == 1): OPtag = 'L'
-            elif (iop == 2): OPtag = 'M'
-            elif (iop == 3): OPtag = 'T'
-            elif (iop == 4): OPtag = 'XT'
-            elif (iop == 5): OPtag = 'XXT'
+            if (iop == 1): 
+                OPtag = 'L'
+            elif (iop == 2): 
+                OPtag = 'M'
+            elif (iop == 3): 
+                OPtag = 'T'
+            elif (iop == 4): 
+                OPtag = 'XT'
+            elif (iop == 5): 
+                OPtag = 'XXT'
             else: print ("no such iop")
 
-            #report
+            # fill txt file for nominal an stat
             if sliceVarName=='jetpt':
                 btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','central',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb),btvCalibParams)
                 btvCalib.addEntry(entry)
-                #btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, 'kinfit', 'up_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
-                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','up',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
-                entry = ROOT.BTagEntry(str(sfb+sfbTotalUnc),btvCalibParams)
-                btvCalib.addEntry(entry)
-                #btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, title, 'down_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
-                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','down',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
-                entry = ROOT.BTagEntry(str(sfb-sfbTotalUnc),btvCalibParams)
-                btvCalib.addEntry(entry)
+                
                 #btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, title, 'up_statistics', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','up_statistic',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb+sfbStatUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
+                
                 #btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, title, 'down_statistics', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
                 btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','down_statistic',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
                 entry = ROOT.BTagEntry(str(sfb-sfbStatUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
 
+            for syst in systUncs[iop][islice]:
+                if len(syst)==0 : continue
+                if syst.endswith('dn') : continue
+                syst=syst[:-2]
+                if not syst in string_list: continue
+                # print (100*"=")
+                print ("syst_name: ", syst)
+                # print (100*"=")
+                sfbUncUp = systUncs[iop][islice][syst+'up']
+                sfbUncDn = systUncs[iop][islice][syst+'dn']
+                # sfbSystUnc += (0.5*(math.fabs(sfbUncUp)+math.fabs(sfbUncDn)))**2
+                sfbSystUnc = (0.5*(math.fabs(sfbUncUp)+math.fabs(sfbUncDn)))**2
+                #systTable.append( ('~~~{\\small \\it %s}'%syst,'${\\small %.1g / %.1g }$'%(sfbUncUp,sfbUncDn)) )
+                systTable.append( ('~~~{\\small %s}'%syst,'${ %.3f / %.3f }$'%(sfbUncUp,sfbUncDn)) )
+                # sfbSystUnc=math.sqrt(sfbSystUnc)
+                # sfbTotalUnc = math.sqrt(sfbStatUnc**2+sfbSystUnc**2)
+                # #additional_flat_ttbar_sfbsysunc = sfbSystUnc * 1.5
+                # #sfbTotalUnc=math.sqrt(sfbStatUnc**2+sfbSystUnc**2+additional_flat_ttbar_sfbsysunc**2)
+            
+                # for syst in effsystUncs[iop][islice]:
+                #     if len(syst)==0 : continue
+                #     if syst.endswith('dn') : continue
+                #     syst=syst[:-2]
+                #     effUncUp = effsystUncs[iop][islice][syst+'up']
+                #     effUncDn = effsystUncs[iop][islice][syst+'dn']
+                #     effSystUnc += (0.5*(math.fabs(effUncUp)+math.fabs(effUncDn)))**2
+                # effSystUnc = math.sqrt(effSystUnc)
+                # effTotalUnc=math.sqrt(effObsUnc**2+effSystUnc**2)
+                # #additional_flat_ttbar_effsysunc = effSystUnc * 1.5
+                # #effTotalUnc=math.sqrt(effObsUnc**2+effSystUnc**2+additional_flat_ttbar_effsysunc**2)
+            
+                
 
+                # Report
+                if sliceVarName=='jetpt':
+                    # #btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, 'kinfit', 'up_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                    # btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','up',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
+                    # entry = ROOT.BTagEntry(str(sfb+sfbTotalUnc),btvCalibParams)
+                    # btvCalib.addEntry(entry)
+                    # #btvCalibParams = ROOT.BTagEntry.Parameters(OPtag, title, 'down_total', 0, -2.4, 2.4, sliceVarMin,sliceVarMax,0,1)
+                    # btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','down',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
+                    # entry = ROOT.BTagEntry(str(sfb-sfbTotalUnc),btvCalibParams)
+                    # btvCalib.addEntry(entry)
+                    
+                    btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','up_'+syst,5,0,2.4,sliceVarMin,sliceVarMax,0,1) 
+                    entry = ROOT.BTagEntry(str(sfb+sfbSystUnc),btvCalibParams)
+                    btvCalib.addEntry(entry)
+                    
+                    btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','down_'+syst,5,0,2.4,sliceVarMin,sliceVarMax,0,1) 
+                    entry = ROOT.BTagEntry(str(sfb-sfbSystUnc),btvCalibParams)
+                    btvCalib.addEntry(entry)
+                    
+                    
+            #
+
+            # fix from now gkole
             # fill table rows
             tablePerOp[iop]=[( '$\\varepsilon_{\\rm b}^{\\rm MC}$' , '$%0.3f \, \pm \, %0.3f$ ' % (effExp,effExpUnc) ),
                              ( '$\\varepsilon_{\\rm b}^{\\rm obs}$' , '$%0.3f \, \pm \, %0.3f$ \\\\ \hline' % (effObs,effObsUnc) ),
                              ( '${\\rm SF}_{\\rm b}$' , '$%0.3f \, \pm \, %0.3f \, \mathrm{(\\rm stat)} \, \pm \, %0.3f \, (\\rm syst)$' % (sfb,sfbStatUnc,sfbSystUnc) )] + systTable
 
-            # Add points to graphs
+                    # Add points to graphs
             key=('eff','stat')
             np=summaryGrs[iop][key].GetN()
 
