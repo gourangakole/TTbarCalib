@@ -17,7 +17,7 @@ MARKERS=[20,24,22,25]
 def addToSummaryGr(summaryGrs,val,valUnc,xmin,xmax,taggerName,summaryType,uncType,sliceNb,iop):
     sliceType='diff'
     key='%s_%s_%s_%d_%s'%(taggerName,summaryType,uncType,iop,sliceType)
-    print 'Add to summary Gr: ', key
+    print ('Add to summary Gr: ', key)
     xcen=0.5*(xmin+xmax)
     dx=(xcen-xmin) if 'total' in uncType else 0.
     np=summaryGrs[key].GetN()
@@ -39,7 +39,7 @@ def buildSFbSummary(inF,title,outDir):
     SUMMARYCTR+=1
 
     #read results from the pickle file
-    cachefile = open(inF,'r')
+    cachefile = open(inF,'rb')
     fitInfo=pickle.load(cachefile)
     effExpected=pickle.load(cachefile)
     effObserved=pickle.load(cachefile)
@@ -65,7 +65,7 @@ def buildSFbSummary(inF,title,outDir):
     summaryGrs={}
     for summaryType in ['eff','sfb']:
         for uncType in ['stat','total']:
-            for iop in xrange(1,nOPs):
+            for iop in range(1,nOPs):
                 if not iop in summaryGrs: summaryGrs[iop]={}
                 key=(summaryType,uncType)
                 summaryGrs[iop][key]=ROOT.TGraphErrors()
@@ -90,19 +90,19 @@ def buildSFbSummary(inF,title,outDir):
     table,plotsToInclude=[],[]
     for islice in effExpected[1]:
         tablePerOp={}
-        print 'Fit information: ' , fitInfo
+        print ('Fit information: ' , fitInfo)
         sliceVarMin, sliceVarMax = fitInfo['slicebins'][islice][0], fitInfo['slicebins'][islice][1]
         sliceVarMean = 0.5*(sliceVarMax+sliceVarMin)
         sliceVarDx   = 0.5*(sliceVarMax-sliceVarMin)
         #sliceVarMean = sliceVarMean+((SUMMARYCTR-1)%4-2)*sliceVarDx*0.1
-        for iop in xrange(1,len(taggerDef)-2):
+        for iop in range(1,len(taggerDef)-2):
             systTable=[]
             effExp,effExpUnc = effExpected[iop][islice]
             effObs,effObsUnc = effObserved[iop][islice][0],effObserved[iop][islice][1]
             sfb,sfbStatUnc   = sfbMeasurement[iop][islice]
             sfbSystUnc       = 0#sfbStatUnc**2
             effSystUnc = 0
-            string_list = ['jes','jer','pileup']
+            string_list = ['jes','jer','pileup','mass']
             
             for syst in effsystUncs[iop][islice]:
                 if len(syst)==0 : continue
@@ -286,11 +286,11 @@ def produceSummaryFigures(sliceVar,summaryGr,output, lumi):
     p2.SetGrid()
     p2.Draw()
 
-    firstKey=summaryGr.keys()[0]
+    firstKey=list(summaryGr.keys())[0]
 
     output_names = output.split('/')
     tagger_name = output_names[1].split('_')
-    print 'tagger_name: ', tagger_name[0]
+    print ('tagger_name: ', tagger_name[0])
 
     for iop in summaryGr[firstKey]:
         #Efficiency pad
@@ -335,7 +335,7 @@ def produceSummaryFigures(sliceVar,summaryGr,output, lumi):
         txt_1.SetTextFont(43)
         txt_1.SetTextSize(14)
         txt_1.SetTextAlign(12)
-        print 'iop: ', iop
+        print ('iop: ', iop)
 
         if iop == 1:
             workingPoint_label = tagger_name[0] + ': Loose'
@@ -382,7 +382,7 @@ def produceSummaryFigures(sliceVar,summaryGr,output, lumi):
 """
 def createReport(tableCollection,plotsToInclude,output):
 
-    print 'Create Report'
+    print ('Create Report')
     #create output file
     out = open('sfb_report.tex','w')
     out.write('\\documentclass[10pt,a4paper]{article}\n')
@@ -401,14 +401,14 @@ def createReport(tableCollection,plotsToInclude,output):
 
     for sliceVar in tableCollection:
         out.write('\\subsection{Results as function of %s}\n'%SLICEVARTITLES[sliceVar])
-        firstMethod=tableCollection[sliceVar].keys()[0]
+        firstMethod=list(tableCollection[sliceVar].keys())[0]
 
         #out.write('\\clearpage\n')
         out.write('\\subsubsection{Tables}\n')
-        firstMethod=tableCollection[sliceVar].keys()[0]
+        firstMethod=list(tableCollection[sliceVar].keys())[0]
         for iop in tableCollection[sliceVar][firstMethod][0][1]:
             out.write('\\clearpage\n')
-            for i in xrange(0,len(tableCollection[sliceVar][firstMethod])):
+            for i in range(0,len(tableCollection[sliceVar][firstMethod])):
                 sliceDef=tableCollection[sliceVar][firstMethod][i][0]
 
                 out.write('\\begin{table}[ht]\n')
@@ -440,10 +440,10 @@ def createReport(tableCollection,plotsToInclude,output):
         #dump plots as well
         out.write('\\clearpage\n')
         out.write('\\subsubsection{Figures}\n')
-        firstMethod=tableCollection[sliceVar].keys()[0]
+        firstMethod=list(tableCollection[sliceVar].keys())[0]
         if sliceVar in plotsToInclude:
             iplot=1
-            print 'sliceVar: ', sliceVar
+            print ('sliceVar: ', sliceVar)
             for caption,plot in plotsToInclude[sliceVar]:
                 if iplot%4==0 : out.write('\\clearpage\n')
                 out.write('\n')
@@ -460,7 +460,7 @@ def createReport(tableCollection,plotsToInclude,output):
     out.close()
 
     # Compile and move to output
-    print 'output moved to ' , output
+    print ('output moved to ' , output)
     os.system('pdflatex sfb_report.tex')
     os.system('mv -v sfb_report.* %s'%output)
 
@@ -497,8 +497,8 @@ def main():
     for line in allInputs:
         print ("debug 1: ", line)
         title,inF=line.split(':')
-        print 'Input file: ', inF
-        print 'title: ', title
+        print ('Input file: ', inF)
+        print ('title: ', title)
         sliceVar, effGrs, tables,plots = buildSFbSummary(inF,title,opt.output)
         if not sliceVar in summaryGr:
             summaryGr[sliceVar]={}
