@@ -1,7 +1,7 @@
 import optparse
 import os,sys
 import json
-import commands
+#import commands
 import ROOT
 import pickle
 from plotter import Plot
@@ -23,7 +23,7 @@ SLICEVAR   = 'jetpt'
 #SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 # Updated:
 # gkole try
-SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn']
+SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn','massup','massdn']
 #SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 
 """
@@ -31,9 +31,9 @@ Project trees from files to build the templates
 """
 def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_syst):
 
-    print 'Preparing template for %s tagger.'%(tagger)
-    print 'Variable to fit is %s.'%(var)
-    print 'Slice variable is %s.'%(SLICEVAR)
+    print ('Preparing template for %s tagger.'%(tagger))
+    print ('Variable to fit is %s.'%(var))
+    print ('Slice variable is %s.'%(SLICEVAR))
 
     nOPs=len(taggerDef)-2
 
@@ -85,7 +85,7 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
         files = [ f for f in os.listdir(inDir) if '.root' in f ]
 
     print('files: ', files)
-    chains={'mc':ROOT.TChain('kin'), 'mcjesup':ROOT.TChain('kin'), 'mcjesdn':ROOT.TChain('kin'), 'mcjerup':ROOT.TChain('kin'), 'mcjerdn':ROOT.TChain('kin'), 'data':ROOT.TChain('kin')}
+    chains={'mc':ROOT.TChain('kin'), 'mcjesup':ROOT.TChain('kin'), 'mcjesdn':ROOT.TChain('kin'), 'mcjerup':ROOT.TChain('kin'), 'mcjerdn':ROOT.TChain('kin'), 'data':ROOT.TChain('kin'), 'mcmassup':ROOT.TChain('kin'), 'mcmassdn':ROOT.TChain('kin')}
 
     for f in files:
         if 'training' in f:
@@ -101,7 +101,11 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
             key = 'mcjerup'
         elif ('TTto2L2Nu' in f and 'jerdn' in f):
             key = 'mcjerdn'
-        elif ('TTto2L2Nu' in f and not 'jesup' in f and not 'jesdn' in f and not 'jerup' in f and not 'jerdn' in f):
+        elif ('TTto2L2Nu' in f and 'massup' in f):
+            key = 'mcmassup'
+        elif ('TTto2L2Nu' in f and 'massdn' in f):
+            key = 'mcmassdn'
+        elif ('TTto2L2Nu' in f and not 'jesup' in f and not 'jesdn' in f and not 'jerup' in f and not 'jerdn' in f and not 'massup' in f and not 'massdn' in f):
             key = 'mc'
         else:
             key = 'data'
@@ -113,12 +117,12 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
             dir_file_name=inDir+'/'+f
             print ("key", key, "and file", dir_file_name)
             chains[key].Add(dir_file_name)
-    
+
     # Fill histos
     for key in chains:
         # print ("Loop over key: ", key)
         nentries=chains[key].GetEntries()
-        print 'Starting with %s containing %d entries'%(key,nentries)
+        print ('Starting with %s containing %d entries'%(key,nentries))
 
         for i in xrange(0,nentries):
             if i%1 == 0:
@@ -134,8 +138,8 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
             # Restrict jet multiplicity (one entry in kin tree)
             njets=chains[key].jetmult
             if 0:
-                print "gkole debug-> 0:"
-                print 'Entry: %s , njets: %s ' % (i, njets)
+                print ("gkole debug-> 0:")
+                print ('Entry: %s , njets: %s ' % (i, njets))
 
             if njets<2 or njets>4 : continue
             # print ('SYSTVARS: ', SYSTVARS)
@@ -146,6 +150,8 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                 if key == 'mcjesdn' and systVar != 'jesdn': continue
                 if key == 'mcjerup' and systVar != 'jerup': continue
                 if key == 'mcjerdn' and systVar != 'jerdn': continue
+                if key == 'mcmassup' and systVar != 'massup': continue
+                if key == 'mcmassdn' and systVar != 'massdn': continue
                 # if systVar =='' and key != 'mc': continue
                 # if systVar =='jesup' and key != 'mcjesup': continue
                 # if systVar =='jesdn' and key != 'mcjesdn': continue
@@ -248,7 +254,7 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
     #save templates to file
     outT.Write()
     for key in histos :
-        print 'Check histogram %s , integral %s ' % (key, histos[key].Integral())
+        print ('Check histogram %s , integral %s ' % (key, histos[key].Integral()))
         histos[key].Write()
     fOut.Close()
 
@@ -256,7 +262,7 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
 Wrapper to be used when run in parallel
 """
 def runPrepareTemplatesPacked(args):
-    print 'runPrepareTemplatesPacked . . . . '
+    print ('runPrepareTemplatesPacked . . . . ')
     tagger, taggerDef, var, varRange, channelList, inDir, outDir, TT_syst = args
     try:
         return prepareTemplates(tagger=tagger,
@@ -268,9 +274,9 @@ def runPrepareTemplatesPacked(args):
                                 outDir=outDir,
                                 TT_syst=TT_syst)
     except :
-        print "Exception: %s " % sys.exc_info()[0]
-        print "Culprit: %s " % sys.exc_info()[1]
-        print "Full sys exc_info : %s " % sys.exc_info()
+        print ("Exception: %s " % sys.exc_info()[0])
+        print ("Culprit: %s " % sys.exc_info()[1])
+        print ("Full sys exc_info : %s " % sys.exc_info())
         return False
 
 """
@@ -295,7 +301,7 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
 
     #input file
     input_file = '%s/%s_templates/%s.root' % (outDir, var, tagger)
-    print 'input_file: ',input_file
+    print ('input_file: ',input_file)
     fIn=ROOT.TFile.Open(input_file)
 
     effMeasurements,effExpected,sfMeasurements,systUncs,effUncs={},{},{},{},{}
@@ -344,9 +350,9 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
                             hnomname='%s_%s%s'%(flav,status,baseNameNominal)
                             inomhisto=fIn.Get(hnomname)
                             if inomhisto.Integral() == 0:
-                                print 'Warning: Nominal template histogram ', hnomname, ' has integral = ', inomhisto.Integral()
+                                print ('Warning: Nominal template histogram ', hnomname, ' has integral = ', inomhisto.Integral())
                             if ihisto.Integral() == 0:
-                                print 'Warning: Systematic template histogram ', hname, ' has integral = ', ihisto.Integral()
+                                print ('Warning: Systematic template histogram ', hname, ' has integral = ', ihisto.Integral())
                             if inomhisto.Integral() != 0 and ihisto.Integral() != 0:
                                 ihisto.Scale(inomhisto.Integral()/ihisto.Integral())
 
@@ -422,8 +428,8 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
     cache = '%s/%s_templates/.%s_fits.pck' % (outDir,var,tagger)
     cachefile = open(cache,'w')
     fitInfo={'var':var,'tagger':tagger,'taggerDef':taggerDef,'slicevar':SLICEVAR,'slicebins':SLICEBINS[SLICEVAR]}
-    print 'fitInfo: '
-    print fitInfo
+    print ('fitInfo: ')
+    print (fitInfo)
     pickle.dump(fitInfo, cachefile,pickle.HIGHEST_PROTOCOL)
     pickle.dump(effExpected, cachefile, pickle.HIGHEST_PROTOCOL)
     pickle.dump(effMeasurements, cachefile, pickle.HIGHEST_PROTOCOL)
@@ -433,7 +439,7 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
     print ("effUncs: ", effUncs)
     pickle.dump(effUncs, cachefile, pickle.HIGHEST_PROTOCOL)
     cachefile.close()
-    print 'Fit results have been stored in %s'%cache
+    print ('Fit results have been stored in %s'%cache)
 
 """
 steer the script
@@ -481,7 +487,7 @@ def main():
             for tagger,taggerDef in taggersList:
                 if var==tagger : continue
                 task_list.append((tagger,taggerDef,var,(varMin,varMax),channelList,opt.inDir,opt.outDir,opt.TT_syst))
-        print '%s jobs to run in %d parallel threads' % (len(task_list), opt.njobs)
+        print ('%s jobs to run in %d parallel threads' % (len(task_list), opt.njobs))
         #Prepare templates
         if opt.njobs == 0:
             for tagger,taggerDef,var,varRange, channelList,inDir,outDir in task_list:
@@ -499,7 +505,7 @@ def main():
             pool.map(runPrepareTemplatesPacked, task_list)
 
     #run the fits
-    print 'Preparing to run fits:'
+    print ('Preparing to run fits:')
     ROOT.gSystem.CompileMacro("TTbarSFbFitTools.cc","fk","libTTbarSFbFitTools")
     ROOT.gSystem.Load("libTTbarSFbFitTools.so")
     for var,_,_ in VARSTOFIT:
