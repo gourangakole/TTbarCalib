@@ -630,7 +630,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       //convert to P4
       TLorentzVector jp4(0,0,0,0);
       jp4.SetPtEtaPhiM(ev.Jet_pt[ij],ev.Jet_eta[ij],ev.Jet_phi[ij],ev.Jet_mass[ij]);
-
+      //cout << "Jet's pt, eta, phi, mass" << endl;
+      //cout << ev.Jet_pt[ij] << " " << ev.Jet_eta[ij]  <<" "<< ev.Jet_phi[ij] <<" "<< ev.Jet_mass[ij] << endl;
       // pT/eta selection of jets set in ttbar selection producer and performed by BTA.
       // Implement any additional jet selection here.
       float jet_minptcut = 30.;
