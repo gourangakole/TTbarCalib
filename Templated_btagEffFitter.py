@@ -23,7 +23,7 @@ SLICEVAR   = 'jetpt'
 #SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 # Updated:
 # gkole try
-SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn','massup','massdn']
+SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn','massup','massdn','tuneup','tunedn','hdampup','hdampdn']
 #SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 
 """
@@ -85,7 +85,7 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
         files = [ f for f in os.listdir(inDir) if '.root' in f ]
 
     print('files: ', files)
-    chains={'mc':ROOT.TChain('kin'), 'mcjesup':ROOT.TChain('kin'), 'mcjesdn':ROOT.TChain('kin'), 'mcjerup':ROOT.TChain('kin'), 'mcjerdn':ROOT.TChain('kin'), 'data':ROOT.TChain('kin'), 'mcmassup':ROOT.TChain('kin'), 'mcmassdn':ROOT.TChain('kin')}
+    chains={'mc':ROOT.TChain('kin'), 'mcjesup':ROOT.TChain('kin'), 'mcjesdn':ROOT.TChain('kin'), 'mcjerup':ROOT.TChain('kin'), 'mcjerdn':ROOT.TChain('kin'), 'data':ROOT.TChain('kin'), 'mcmassup':ROOT.TChain('kin'), 'mcmassdn':ROOT.TChain('kin'), 'mctuneup':ROOT.TChain('kin'), 'mctunedn':ROOT.TChain('kin'), 'mchdampup':ROOT.TChain('kin'), 'mchdampdn':ROOT.TChain('kin')}
 
     for f in files:
         if 'training' in f:
@@ -105,7 +105,15 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
             key = 'mcmassup'
         elif ('TTto2L2Nu' in f and 'massdn' in f):
             key = 'mcmassdn'
-        elif ('TTto2L2Nu' in f and not 'jesup' in f and not 'jesdn' in f and not 'jerup' in f and not 'jerdn' in f and not 'massup' in f and not 'massdn' in f):
+        elif ('TTto2L2Nu' in f and 'tuneup' in f):
+            key = 'mctuneup'
+        elif ('TTto2L2Nu' in f and 'tunedn' in f):
+            key = 'mctunedn'
+        elif ('TTto2L2Nu' in f and 'hdampup' in f):
+            key = 'mchdampup'
+        elif ('TTto2L2Nu' in f and 'hdampdn' in f):
+            key = 'mchdampdn'    
+        elif ('TTto2L2Nu' in f and not 'jesup' in f and not 'jesdn' in f and not 'jerup' in f and not 'jerdn' in f and not 'massup' in f and not 'massdn' in f and not 'tuneup' in f and not 'tunedn' in f and not 'hdampup' in f and not 'hdampdn' in f):
             key = 'mc'
         else:
             key = 'data'
@@ -152,6 +160,10 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                 if key == 'mcjerdn' and systVar != 'jerdn': continue
                 if key == 'mcmassup' and systVar != 'massup': continue
                 if key == 'mcmassdn' and systVar != 'massdn': continue
+                if key == 'mctuneup' and systVar != 'tuneup': continue
+                if key == 'mctunedn' and systVar != 'tunedn': continue
+                if key == 'mchdampup' and systVar != 'hdampup': continue
+                if key == 'mchdampdn' and systVar != 'hdampdn': continue
                 # if systVar =='' and key != 'mc': continue
                 # if systVar =='jesup' and key != 'mcjesup': continue
                 # if systVar =='jesdn' and key != 'mcjesdn': continue

@@ -102,7 +102,7 @@ def buildSFbSummary(inF,title,outDir):
             sfb,sfbStatUnc   = sfbMeasurement[iop][islice]
             sfbSystUnc       = 0#sfbStatUnc**2
             effSystUnc = 0
-            string_list = ['jes','jer','pileup','mass']
+            string_list = ['jes','jer','pileup','mass','tune','hdamp']
             
             for syst in effsystUncs[iop][islice]:
                 if len(syst)==0 : continue
