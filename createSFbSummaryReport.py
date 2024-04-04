@@ -153,6 +153,14 @@ def buildSFbSummary(inF,title,outDir):
                 entry = ROOT.BTagEntry(str(sfb-sfbStatUnc),btvCalibParams)
                 btvCalib.addEntry(entry)
 
+                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','up',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
+                entry = ROOT.BTagEntry(str(sfb+sfbTotalUnc),btvCalibParams)
+                btvCalib.addEntry(entry)
+
+                btvCalibParams = ROOT.BTagEntry.Parameters(OPtag,'kinfit','down',5,0,2.4,sliceVarMin,sliceVarMax,0,1)
+                entry = ROOT.BTagEntry(str(sfb-sfbTotalUnc),btvCalibParams)
+                btvCalib.addEntry(entry)
+
             for syst in systUncs[iop][islice]:
                 if len(syst)==0 : continue
                 if syst.endswith('dn') : continue
