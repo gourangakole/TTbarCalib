@@ -7,19 +7,21 @@
 # This will then be multiplied into each events event weight in TTbarEventAnalysis.cc
 # Thus, the resulting distributions only need to be scaled to the desired luminosity, which can be done in the plotting stage
 
-import ROOT, pickle, commands, os
+import ROOT, pickle, os
+import subprocess
 
 """
 Takes a directory on eos (starting from /store/...) and returns a list of all files with 'prepend' prepended
 """
 def getEOSlslist(directory, mask='', prepend='root://eoscms.cern.ch'):
     from subprocess import Popen, PIPE
-    print 'looking into: '+directory+'...'
+    print ('looking into: '+directory+'...')
 
     eos_dir = '/eos/cms/%s' % directory
-    # eos_cmd = 'eos ' + prepend + ' ls ' + eos_dir
-    eos_cmd = ' ls ' + eos_dir # for working in container from lxplus9
-    out = commands.getoutput(eos_cmd)
+    eos_cmd = 'eos ' + prepend + ' ls ' + eos_dir
+    ##eos_cmd = ' ls ' + eos_dir # for working in container from lxplus9
+    out = subprocess.getoutput(eos_cmd)
+    #out = subprocess.check_output(eos_cmd, universal_newlines=True)
     full_list = []
     ## if input file was single root file:
     if directory.endswith('.root'):
@@ -45,13 +47,13 @@ def produceNormalizationCache(samplesList,inDir,cache,normWgts,integLumi):
     for tag,sample in samplesList:
         print('Tag: %s, sample: %s' % (tag,sample))
         if sample[1]==1 :
-            print '[storeTools] sample = %i (=data)' % sample[1]
-            print 'skipping normWeights in pickle file'
+            print ('[storeTools] sample = %i (=data)' % sample[1])
+            print ('skipping normWeights in pickle file')
             normWgts[tag]=None
             continue
 
         if tag in normWgts:
-            print '[Warning] won\'t override current definition for',tag,'. Use --resetCache option to override'
+            print ('[Warning] won\'t override current definition for',tag,'. Use --resetCache option to override')
             continue
 
         input_list=getEOSlslist(directory=inDir+'/'+tag)
@@ -118,6 +120,6 @@ def produceNormalizationCache(samplesList,inDir,cache,normWgts,integLumi):
     pickle.dump(normWgts, cachefile, pickle.HIGHEST_PROTOCOL)
     pickle.dump(integLumi, cachefile, pickle.HIGHEST_PROTOCOL)
     cachefile.close()
-    print 'Produced normalization cache and pileup weights @ %s'%cache
+    print ('Produced normalization cache and pileup weights @ %s'%cache)
 
     return normWgts,integLumi

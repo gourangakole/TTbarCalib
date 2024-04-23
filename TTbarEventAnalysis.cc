@@ -65,14 +65,14 @@ void TTbarEventAnalysis::prepareOutput(TString outFile)
 
   // Preparing the histograms: The naming convention here can again be as you decide as you will fill them with the variables you create later.
   std::map<TString,TH1F *> baseHistos;
-  baseHistos["npvinc" ]  = new TH1F("npvinc", ";nPV_{incl.};Events",              50, 0, 50);
-  baseHistos["npv"    ]  = new TH1F("npv",    ";nPV;Events",              50, 0, 50);
-  baseHistos["npvGood"]  = new TH1F("npvGood",";nPV (Good);Events",       50, 0, 50);
+  baseHistos["npvinc" ]  = new TH1F("npvinc", ";nPV_{incl.};Events",              100, 0, 100);
+  baseHistos["npv"    ]  = new TH1F("npv",    ";nPV;Events",              100, 0, 100);
+  baseHistos["npvGood"]  = new TH1F("npvGood",";nPV (Good);Events",       100, 0, 100);
   baseHistos["rho"    ]  = new TH1F("rho",    ";#rho [GeV];Events",                      50, 0, 30);
   baseHistos["mll"    ]  = new TH1F("mll",    ";Dilepton invariant mass [GeV];Events",   20, 0, 300);
   baseHistos["mllinc" ]  = new TH1F("mllinc", ";Dilepton invariant mass [GeV];Events",   20, 0, 300);
-  baseHistos["precut_met"]  = new TH1F("precut_met",    ";Missing transverse energy (pre MET cut) [GeV];Events", 15, 0, 300);
-  baseHistos["met"    ]  = new TH1F("met",    ";Missing transverse energy [GeV];Events", 15, 0, 300);
+  baseHistos["precut_met"]  = new TH1F("precut_met",    ";Missing transverse energy (pre MET cut) [GeV];Events", 20, 0, 300);
+  baseHistos["met"    ]  = new TH1F("met",    ";Missing transverse energy [GeV];Events", 20, 0, 300);
   baseHistos["njets"  ]  = new TH1F("njets",  ";Jet multiplicity;Events;",               6,  2, 8);
   baseHistos["leadjpt"]  = new TH1F("leadjpt",";Leading jet p_{T} [GeV];Events;",        14,30,300);
   baseHistos["leadlpt"]  = new TH1F("leadlpt",";Leading lepton p_{T} [GeV];Events;",     9,20,200);
@@ -194,7 +194,7 @@ TH1F* TTbarEventAnalysis::readHistogram(const char* fileName, const char* histog
     std::cerr << "Error: Could not open file " << fileName << std::endl;
     return nullptr;
   }
-  
+
   // Retrieve the original histogram from the file
   TH1F* originalHistogram = dynamic_cast<TH1F*>(file->Get(histogramName));
 
@@ -207,13 +207,16 @@ TH1F* TTbarEventAnalysis::readHistogram(const char* fileName, const char* histog
   }
 
   // Clone the original histogram
-  TH1F* clonedHistogram = dynamic_cast<TH1F*>(originalHistogram->Clone());
-  clonedHistogram->SetDirectory(0); // "detach" the histogram from the file
+  //TH1F* clonedHistogram = dynamic_cast<TH1F*>(originalHistogram->Clone());
+  //clonedHistogram->SetDirectory(0); // "detach" the histogram from the file
   // Close the file (don't forget to do this to avoid memory leaks)
-  file->Close();
 
+  originalHistogram->SetDirectory(0);
+  file->Close();
+  delete file;
   //cout << "debug->2: " <<clonedHistogram->GetMean() << endl;
-  return clonedHistogram;
+  //return clonedHistogram;
+  return originalHistogram;
 }
 
 //
@@ -371,15 +374,18 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     //SetPUWeightTarget("pileup_weights/pileupWgts2016.root",filenickname);
     //SetPUWeightTarget("pileup_weights/pileupWgts2018_preVFP.root",filenickname); % it was running upto 6/12/2023 (2:50 pm)
     //puWgtGr_ = readHistogram("pileup_weights/puwei_2022_preEE.histo.root","PU");
-    puWgtGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PU");
+    //puWgtGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PU");
+    puWgtGr_ = readHistogram("pileup_weights/puwei_Summer23.histo.root","PU");
     //cout << "puWgtGr_->GetMean():  " << puWgtGr_->GetMean() << endl;
 
     //puWgtUpGr_ = readHistogram("pileup_weights/puwei_2022_preEE.histo.root","PUup");
-    puWgtUpGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PUup");
+    //puWgtUpGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PUup");
+    puWgtUpGr_ = readHistogram("pileup_weights/puwei_Summer23.histo.root","PUup");
     //cout << "puWgtUpGr_->GetMean():  " << puWgtUpGr_->GetMean() << endl;
 
     //puWgtDownGr_ = readHistogram("pileup_weights/puwei_2022_preEE.histo.root","PUdown");
-    puWgtDownGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PUdown");
+    //puWgtDownGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PUdown");
+    puWgtDownGr_ = readHistogram("pileup_weights/puwei_Summer23.histo.root","PUdown");
     //cout << "puWgtDownGr_->GetMean():  " << puWgtDownGr_->GetMean() << endl;
   }
 
@@ -399,7 +405,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     tree->GetEntry(i);
     // gkole print something here
     if (i%1000 == 0) cout << "Event index " << i << endl;
-    // cout << "# jets (all jets) = " << ev.nJet << endl;
+    cout << "Event index " << i << endl;
+    //cout << "# jets (all jets) = " << ev.nJet << endl;
 
     if(!isData){
       // From the pileup weights histogram made before running this code,
@@ -412,6 +419,11 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       if(puWgtHi <0)   {puWgtHi  = 0;}
     }
 
+    //cout << "# of nPU = " << ev.nPU << endl; 
+    //cout << "puWgtGr_ = " << puWgtNom << endl;
+    //cout << "puWgtUpGr_ = " << puWgtHi << endl;
+    //cout << "puWgtDownGr_ = " << puWgtLo << endl;
+    
     histos_["puwgtnorm" ]->Fill(0.,1.0);
     histos_["puwgtnorm" ]->Fill(1.,puWgtNom);
     histos_["puwgtnorm" ]->Fill(2.,puWgtLo);
@@ -423,9 +435,9 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     // Multiplying each event by the mcweight should remove dependence on generator XS i.e. any scale dependence on # generated events
     // This is because we are also going to scale each event by 1/sum(weights), where this value is taken from the storeTools.py script
     //Double_t genWgt = ev.ttbar_nw==0 ? 1.0 : ev.ttbar_w[0];
-    Double_t genWgt = ev.ttbar_w==0 ? 1.0 : ev.ttbar_w[0];
+    Double_t genWgt = ev.ttbar_w[0]==0.0 ? 1.0 : ev.ttbar_w[0];
     //if(genWgt>73.){cout << "genWgt: " << genWgt << endl;}
-    if (0) cout << "gkole: genWgt: " << genWgt << endl;
+    if (1) cout << "gkole: genWgt: " << genWgt << endl;
     
     Float_t qcdScaleLo(1.0),qcdScaleHi(1.0),hdampLo(1.0),hdampHi(1.0);
     double isrRedHi=1;
@@ -601,7 +613,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     
     if (0) cout << "gkole-fixme weight: " << evWgt << endl;
     if(!isData){
-      evWgt = 1.0*puWgtNom;
+      evWgt = 1.0*genWgt*puWgtNom/abs(genWgt);
     }
     if (0) cout << "gkole (temporary) set evWgt = 1.0: " << evWgt << endl;
 

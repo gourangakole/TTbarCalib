@@ -1,7 +1,7 @@
 import optparse
 import os,sys
 import json
-import commands
+# import commands
 import ROOT
 import pickle
 import math
@@ -17,7 +17,7 @@ def runTTbarAnalysis(inFile, outFile, wgt, tmvaWgts=None, isData=False):
 
     from ROOT import TTbarEventAnalysis
     evAnalysis=TTbarEventAnalysis()
-    print 'inFile: ' , inFile
+    print ('inFile: ' , inFile)
 
     #MC specifics
     if 'TTJets' in inFile: evAnalysis.setReadTTJetsGenWeights(True)
@@ -70,9 +70,9 @@ def runTTbarAnalysisPacked(args):
     try:
         return runTTbarAnalysis(inFile=inFile, outFile=outFile, wgt=wgt, tmvaWgts=tmvaWgts, isData=isData)
     except :
-        print 50*'<'
-        print "Problem (%s) with %s continuing without"%(sys.exc_info()[1],inFile)
-        print 50*'<'
+        print (50*'<')
+        print ("Problem (%s) with %s continuing without"%(sys.exc_info()[1],inFile))
+        print (50*'<')
         return False
 
 """
@@ -90,8 +90,10 @@ def main():
     parser.add_option(        '--tmvaWgts',    dest='tmvaWgts',    help='tmva weights',                 default=None,        type='string')
     parser.add_option(        '--dyScale',     dest='dyScale',     help='DY scale factor',              default=None,        type='string')
     parser.add_option('-n',   '--njobs',       dest='njobs',       help='# jobs to run in parallel',    default=0,           type='int')
-    parser.add_option(        '--nfiles',      dest='nfiles',      help='# of files to run on',         default=-1,          type='int')
+    parser.add_option(        '--nfiles',      dest='nfiles',      help='# of files to run on',         default=0,          type='int')
     (opt, args) = parser.parse_args()
+
+    Training = False
 
     #compile c++ wrapper to run over trees
     ROOT.gSystem.Load("libJetMETCorrectionsObjects.so")
@@ -100,7 +102,7 @@ def main():
 
     #read list of samples
     jsonFile = open(opt.json,'r')
-    samplesList=json.load(jsonFile,encoding='utf-8').items()
+    samplesList=json.load(jsonFile).items()
     jsonFile.close()
 
     #prepare output
@@ -162,16 +164,38 @@ def main():
         input_list=getEOSlslist(directory=opt.inDir+'/'+tag)
         # Weight histograms passed here are passed from storeTools
         # wgt = xsecWgts[tag] # now hard coded here as 1.0
-        wgt = 1.0
 
-        for nf in xrange(0,len(input_list)) :
+        # take 1/4 of total ttbar for training
+        nof_train = len(input_list)/4
+        print ("input_list: " , len(input_list))
+        print ("nof_train   ", nof_train)
+        files_to_run_start = 0
+        files_to_run_stop = len(input_list)
+        if Training:
+            files_to_run_start = 0
+            files_to_run_stop = nof_train
+        else:
+            if sample[1]:
+                files_to_run_start = 0
+            else:
+                files_to_run_start = nof_train
+            files_to_run_stop = len(input_list)
+
+
+            
+        print ("files_to_run_start: ", files_to_run_start)
+        print ("files_to_run_stop: ", files_to_run_stop)
+
+        wgt = 1.0
+        print ("No of files to run on: ", opt.nfiles)
+        for nf in range(int(files_to_run_start), int(files_to_run_stop)) :
             if nf >= opt.nfiles: # Use to run only one file for tests (default is -1)
                 continue
             outF='%s/%s_%d.root'%(opt.outDir,tag,nf)
             task_list.append( (input_list[nf], outF, wgt, opt.tmvaWgts, sample[1]) )
 
     task_list=list(set(task_list))
-    print '%s jobs to run in %d parallel threads' % (len(task_list), opt.njobs)
+    print ('%s jobs to run in %d parallel threads' % (len(task_list), opt.njobs))
 
     print ("gkole on 11_Oct v0 type: %s and wgt: %d " % (type(wgt), wgt)) 
     print (50*">")
@@ -187,7 +211,7 @@ def main():
         pool = Pool(opt.njobs)
         pool.map(runTTbarAnalysisPacked, task_list)
 
-    print 'Analysis results are available in %s' % opt.outDir
+    print ('Analysis results are available in %s' % opt.outDir)
     exit(0)
 
 """

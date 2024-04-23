@@ -28,7 +28,8 @@ enum JETRANK{LEAD,SUBLEAD,OTHER, INCLUSIVE=10000};
 void KIN_trainClassifier( TString inputFile="", Int_t jetRank=LEAD)
 {
   gSystem->ExpandPathName(inputFile);
-  TString wgtsDir_name = "${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/KIN_MVA_UL16_BDT_HIPM";
+  //TString wgtsDir_name = "${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/KIN_MVA_Summer2022_BDT";
+  TString wgtsDir_name = "${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/KIN_MVA_Summer2023_BDT";
   TString wgtsDir(wgtsDir_name);
   gSystem->ExpandPathName(wgtsDir);
   TMVA::gConfig().GetIONames().fWeightFileDir = wgtsDir;
@@ -45,7 +46,8 @@ void KIN_trainClassifier( TString inputFile="", Int_t jetRank=LEAD)
   std::cout << "==> Start TMVAClassification" << std::endl;
 
   // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
-  TString outfileName( "TMVA_BDT_UL16_HIPM.root" );
+  //TString outfileName( "TMVA_BDT_Summer2022.root" );
+  TString outfileName( "TMVA_BDT_Summer2023.root" );
   TFile* outputFile = TFile::Open( outfileName, "RECREATE" );
   cout << "Create Factory" << endl;
   TMVA::Factory *factory = new TMVA::Factory("TMVAClassification", outputFile, "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification");

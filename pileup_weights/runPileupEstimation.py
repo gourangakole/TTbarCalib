@@ -54,8 +54,8 @@ def main():
         # MC pileup file from PileupTools github repo
         # Includes PV in vertex counting (i.e. one additional bin)
         #tfile = ROOT.TFile.Open('pileup_2016GH.root')
-        tfile = ROOT.TFile.Open('pileup_2016BF.root')
-        simPU_TH1D = tfile.Get('pileup')
+        tfile = ROOT.TFile.Open('mcPileupUL2018.root')
+        simPU_TH1D = tfile.Get('pu_mc')
         simPuH=TH1F('simPuH','', simPU_TH1D.GetNbinsX()-1, 0., simPU_TH1D.GetNbinsX()-1)
         simPuH.SetDirectory(0)
         nvert_x = []

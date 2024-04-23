@@ -15,7 +15,9 @@
 #include "RooCategory.h"
 #include "RooSimultaneous.h"
 #include "RooPlot.h"
-#include "RooMinuit.h"
+//#include "RooMinuit.h"
+#include "RooFitLegacy/RooMinuit.h"
+#include <RooFormulaVar.h>
 #include "RooFitResult.h"
 #include "RooWorkspace.h"
 
@@ -296,8 +298,8 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
         float m            = (jetptbins[jetptRange+1]+jetptbins[jetptRange])/2;
 
         //Mistag rates and uncertainties from negative tag method (contact analyst for .csv files)
-        BTagCalibration calib_deepCSV("deepcsv", "data/DeepCSV_2018.out");
-        BTagCalibration calib_deepJet("deepjet", "data/DeepFlavour_2018.out");
+        BTagCalibration calib_deepCSV("deepcsv", "data/DeepCSV_2018.out", true);
+        BTagCalibration calib_deepJet("deepjet", "data/DeepFlavour_2018.out", true);
 
         BTagCalibrationReader DeepCSV_mistag_reader_loose(BTagEntry::OP_LOOSE,// operating point
                              "central",                               // central sys type
@@ -506,7 +508,7 @@ TTbarFracFitterResult_t TTbarFracFitter::fit(TObjArray &expTemplates, TH1F *data
             c->SetRightMargin(0);
             c->SetLeftMargin(0);
 
-            TPad *p1 = new TPad("p1","p1",0.0,0.85,1.0,0.0);
+            TPad *p1 = new TPad("p1","p1",0.0,0.0,1.0,0.85);
             p1->SetRightMargin(0.05);
             p1->SetLeftMargin(0.12);
             p1->SetTopMargin(0.01);

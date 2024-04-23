@@ -39,18 +39,18 @@ class TTbarEventAnalysis
 	// Jet resolution/energy correction uncertainty parameterizations
 	//TString jecUncUrl("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt");
 	//TString jecUncUrl("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt");
-	TString jecUncUrl("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer22_22Sep2023_V1_MC_Uncertainty_AK4PFPuppi.txt");
+	TString jecUncUrl("${CMSSW_BASE}/src/TTbarCalib/data/Summer22_22Sep2023_V1_MC_Uncertainty_AK4PFPuppi.txt");
 	gSystem->ExpandPathName(jecUncUrl);
 	jecUnc_ = new JetCorrectionUncertainty(jecUncUrl.Data());
 	//TString jer_file("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer20UL16_JRV3_MC_PtResolution_AK4PFchs.txt");
-	TString jer_file("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer20UL16APV_JRV3_MC_PtResolution_AK4PFchs.txt");
+	TString jer_file("${CMSSW_BASE}/src/TTbarCalib/data/Summer20UL16APV_JRV3_MC_PtResolution_AK4PFchs.txt");
 
 	gSystem->ExpandPathName(jer_file);
 	resolution = new JME::JetResolution(jer_file.Data());
 	//TString jer_SF_file("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer20UL16_JRV3_MC_SF_AK4PFchs.txt");
 	//TString jer_SF_file("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer20UL16APV_JRV3_MC_SF_AK4PFchs.txt");
 	// gkole:
-	TString jer_SF_file("${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/TTbarCalib/data/Summer20UL16APV_JRV3_MC_SF_AK4PFchs.txt");
+	TString jer_SF_file("${CMSSW_BASE}/src/TTbarCalib/data/Summer20UL16APV_JRV3_MC_SF_AK4PFchs.txt");
 	gSystem->ExpandPathName(jer_SF_file);
 	resolution_sf = new JME::JetResolutionScaleFactor(jer_SF_file.Data());
       }

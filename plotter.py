@@ -76,7 +76,7 @@ class Plot(object):
         self.data = convertToPoissonErrorGr(self.dataH)
 
     def appendTo(self,outUrl):
-        print 'outUrl: ', outUrl
+        print ('outUrl: ', outUrl)
         outF = ROOT.TFile.Open(outUrl,'UPDATE')
         #if not outF.cd(self.name):
             #outDir = outF.mkdir(self.name)
@@ -100,11 +100,11 @@ class Plot(object):
     def show(self, outDir, lumi, noScale=False, saveTeX=False):
 
         if len(self.mc)==0:
-            print '%s has no MC!' % self.name
+            print ('%s has no MC!' % self.name)
             return
 
         if self.mc.values()[0].InheritsFrom('TH2') :
-            print 'Skipping TH2'
+            print ('Skipping TH2')
             return
 
         c = ROOT.TCanvas('c','c',500,500)
@@ -146,7 +146,7 @@ class Plot(object):
             leg.AddEntry(self.mc[h], self.mc[h].GetTitle(), 'f')
             nlegCols += 1
         if nlegCols ==0 :
-            print '%s is empty'%self.name
+            print ('%s is empty'%self.name)
             return
         leg.SetNColumns(ROOT.TMath.Min(nlegCols/2,3))
 
@@ -319,7 +319,7 @@ class Plot(object):
             leg2.Draw()
 
         #all done
-        print 'Update canvas . . .'
+        print ('Update canvas . . .')
         c.cd()
         c.Modified()
         c.Update()
@@ -327,7 +327,7 @@ class Plot(object):
         #save
         for ext in self.plotformats : c.SaveAs(os.path.join(outDir, self.name+'.'+ext))
         if self.savelog:
-            print 'saving log . . . '
+            print ('saving log . . . ')
             p1.cd()
             p1.SetLogy()
             c.cd()
@@ -340,7 +340,7 @@ class Plot(object):
 
     def convertToTeX(self, outDir):
         if len(self.mc)==0:
-            print '%s is empty' % self.name
+            print ('%s is empty' % self.name)
             return
 
         f = open(outDir+'/'+self.name+'.dat','w')
@@ -447,7 +447,7 @@ def main():
     #read list of samples
     jsonFile = open(opt.json,'r')
     samplesList=json.load(jsonFile,encoding='utf-8').items()
-    print 'samplesList= \n ', samplesList
+    print ('samplesList= \n ', samplesList)
     jsonFile.close()
     systSamplesList=None
     if opt.systJson:
@@ -464,14 +464,14 @@ def main():
         for tag,sample in slist:
             print('Cross-section: ' , sample[0])
             if isSyst and not 't#bar{t}' in sample[3] :
-                print "Skipping syst sample",sample
+                print ("Skipping syst sample",sample)
                 continue
 
             inDir=opt.inDir
             if isSyst : inDir += '/syst'
 
             fIn=ROOT.TFile.Open('%s/%s.root' % ( inDir, tag) )
-            print "opening ",'%s/%s.root' % ( inDir, tag)
+            print ("opening ",'%s/%s.root' % ( inDir, tag))
             try:
                 # Loop over histograms in file
                 for tkey in fIn.GetListOfKeys():
@@ -496,7 +496,7 @@ def main():
                     obj.Scale(sample[0])
                     plots[key].add(h=obj,title=sample[3],color=sample[4],isData=sample[1],isSyst=isSyst)
             except:
-                print 'Skipping %s'%tag
+                print ('Skipping %s'%tag)
 
     #show plots
     ROOT.gStyle.SetOptTitle(0)
@@ -512,9 +512,9 @@ def main():
         plots[p].appendTo(outDir+'/plotter.root')
         plots[p].reset()
 
-    print '-'*50
-    print 'Plots and summary ROOT file can be found in %s' % outDir
-    print '-'*50
+    print ('-'*50)
+    print ('Plots and summary ROOT file can be found in %s' % outDir)
+    print ('-'*50)
 
 """
 for execution from another script

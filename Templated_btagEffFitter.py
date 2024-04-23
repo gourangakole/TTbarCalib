@@ -23,7 +23,8 @@ SLICEVAR   = 'jetpt'
 #SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 # Updated:
 # gkole try
-SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn','massup','massdn','tuneup','tunedn','hdampup','hdampdn']
+#SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn','massup','massdn','tuneup','tunedn','hdampup','hdampdn']
+SYSTVARS   = ['','jesup','jesdn','pileupup','pileupdn','massup','massdn','tuneup','tunedn','hdampup','hdampdn']
 #SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 
 """
@@ -54,8 +55,8 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
     histos={}
     baseHisto=ROOT.TH1F(var,';Discriminator;Jets',10*3,varRange[0],varRange[0]+3*(varRange[1]-varRange[0]))
     for flav in ['b','c','other','data']:
-        for i in xrange(0,nOPs):
-            for islice in xrange(0,len(SLICEBINS[SLICEVAR])):
+        for i in range(0,nOPs):
+            for islice in range(0,len(SLICEBINS[SLICEVAR])):
                 for systVar in SYSTVARS:
                     if flav=='data' and len(systVar)>0 : continue
                     #if TT_syst != 'nominal' and len(systVar)>0 : continue
@@ -132,7 +133,7 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
         nentries=chains[key].GetEntries()
         print ('Starting with %s containing %d entries'%(key,nentries))
 
-        for i in xrange(0,nentries):
+        for i in range(0,nentries):
             if i%1 == 0:
                 sys.stdout.write("[%3d/100]\r" % (100*i/float(nentries)))
                 sys.stdout.flush()
@@ -224,7 +225,7 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                 #determine categories
                 #print "taggerVal[0] ",taggerVal[0] 
                 # print 'sliceVarVal: ', sliceVarVal
-                for islice in xrange(0,len(SLICEBINS[SLICEVAR])):
+                for islice in range(0,len(SLICEBINS[SLICEVAR])):
                     passSlice[islice]=0
                     if sliceVarVal<=SLICEBINS[SLICEVAR][islice][0] or sliceVarVal>SLICEBINS[SLICEVAR][islice][1] : continue
                     #print 'passed %s < jet pt < %s' % (SLICEBINS[SLICEVAR][islice][0], SLICEBINS[SLICEVAR][islice][1])
@@ -240,7 +241,7 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                 # Fill the histos
                 normVarVal = ROOT.TMath.Min( varRange[1],ROOT.TMath.Max(varVal[0],varRange[0]) )
                 normVarValJetBins = normVarVal+ (varRange[1]-varRange[0])*(njets-2)
-                for islice in xrange(0,len(passSlice)):
+                for islice in range(0,len(passSlice)):
                     if passSlice[islice]==0 : continue
                     #print 'njets = ', njets
                     if njets==2:
@@ -253,7 +254,7 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                     histos[hkey].Fill(normVarVal,weight)
 
                     # Check to see if jet passed/failed the btag cut and fill appropriate histogram.
-                    for iop in xrange(2,len(taggerDef)-1):
+                    for iop in range(2,len(taggerDef)-1):
                         status='fail' if taggerVal[0] < taggerDef[iop] else 'pass'
                         hkey='%s_%s%d_slice%d%s'%(flav,status,iop-1,islice,systVar)
                         # print 'Check if jet passed/failed btag cut: taggerVal[0] = %s , taggerDef[iop] = %s' % (taggerVal[0], taggerDef[iop])
@@ -296,7 +297,7 @@ Leave no bins with 0 counts
 If negative values (negative weights in MC) set to minimum
 """
 def checkTemplate(h,minVal=1e-5):
-    for xbin in xrange(1,h.GetNbinsX()+1):
+    for xbin in range(1,h.GetNbinsX()+1):
         y=h.GetBinContent(xbin)
         if y<=0: h.SetBinContent(xbin,minVal)
 
@@ -318,9 +319,9 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
 
     effMeasurements,effExpected,sfMeasurements,systUncs,effUncs={},{},{},{},{}
     nOPs=len(taggerDef)-2
-    for iop in xrange(1,nOPs):
+    for iop in range(1,nOPs):
 
-        for islice in xrange(0,len(SLICEBINS[SLICEVAR])):
+        for islice in range(0,len(SLICEBINS[SLICEVAR])):
 
             totalExp=0
             baseNameNominal = '%d_slice%d' % (iop,islice)
@@ -438,7 +439,7 @@ def runSFFits(var,tagger,taggerDef,lumi,outDir):
 
     #dump to pickle
     cache = '%s/%s_templates/.%s_fits.pck' % (outDir,var,tagger)
-    cachefile = open(cache,'w')
+    cachefile = open(cache,'wb')
     fitInfo={'var':var,'tagger':tagger,'taggerDef':taggerDef,'slicevar':SLICEVAR,'slicebins':SLICEBINS[SLICEVAR]}
     print ('fitInfo: ')
     print (fitInfo)
@@ -485,7 +486,7 @@ def main():
 
     #read list of taggers
     taggersFile = open(opt.taggers,'r')
-    taggersList=json.load(taggersFile,encoding='utf-8').items()
+    taggersList=json.load(taggersFile).items()
     taggersFile.close()
 
     #channels to filter
