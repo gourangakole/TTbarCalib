@@ -211,7 +211,7 @@ def main():
         pool = Pool(opt.njobs)
         pool.map(runTTbarAnalysisPacked, task_list)
 
-    print ('Analysis results are available in %s' % opt.outDir)
+    print ("\x1b[6;30;42m Analysis results are available in: \x1b[0m {}".format(opt.outDir))
     exit(0)
 
 """
