@@ -288,6 +288,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     Int_t nPU;
     Float_t nPUtrue;
     Float_t ttbar_w[1095];
+    Float_t ttbar_ps_w[4];
     Int_t nJet;
     Float_t rho;
     Double_t Jet_genpt[100];
@@ -335,6 +336,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   tree->SetBranchAddress("Jet_pt",          &ev.Jet_pt);
   if(!isData){
     tree->SetBranchAddress("Jet_genpt",       ev.Jet_genpt);
+    tree->SetBranchAddress("ttbar_ps_w",     &ev.ttbar_ps_w);
   }
   tree->SetBranchAddress("Jet_area",        ev.Jet_area);
   //tree->SetBranchAddress("Jet_jes",         ev.Jet_jes);
@@ -376,16 +378,19 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     //puWgtGr_ = readHistogram("pileup_weights/puwei_2022_preEE.histo.root","PU");
     //puWgtGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PU");
     puWgtGr_ = readHistogram("pileup_weights/puwei_Summer23.histo.root","PU");
+    //puWgtGr_ = readHistogram("pileup_weights/puwei_Summer23BPix.histo.root","PU");
     //cout << "puWgtGr_->GetMean():  " << puWgtGr_->GetMean() << endl;
 
     //puWgtUpGr_ = readHistogram("pileup_weights/puwei_2022_preEE.histo.root","PUup");
     //puWgtUpGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PUup");
     puWgtUpGr_ = readHistogram("pileup_weights/puwei_Summer23.histo.root","PUup");
+    //puWgtUpGr_ = readHistogram("pileup_weights/puwei_Summer23BPix.histo.root","PUup");
     //cout << "puWgtUpGr_->GetMean():  " << puWgtUpGr_->GetMean() << endl;
 
     //puWgtDownGr_ = readHistogram("pileup_weights/puwei_2022_preEE.histo.root","PUdown");
     //puWgtDownGr_ = readHistogram("pileup_weights/puwei_2022_postEE.histo.root","PUdown");
     puWgtDownGr_ = readHistogram("pileup_weights/puwei_Summer23.histo.root","PUdown");
+    //puWgtDownGr_ = readHistogram("pileup_weights/puwei_Summer23BPix.histo.root","PUdown");
     //cout << "puWgtDownGr_->GetMean():  " << puWgtDownGr_->GetMean() << endl;
   }
 
@@ -405,7 +410,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     tree->GetEntry(i);
     // gkole print something here
     if (i%1000 == 0) cout << "Event index " << i << endl;
-    cout << "Event index " << i << endl;
+    //cout << "Event index " << i << endl;
     //cout << "# jets (all jets) = " << ev.nJet << endl;
 
     if(!isData){
@@ -437,21 +442,35 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     //Double_t genWgt = ev.ttbar_nw==0 ? 1.0 : ev.ttbar_w[0];
     Double_t genWgt = ev.ttbar_w[0]==0.0 ? 1.0 : ev.ttbar_w[0];
     //if(genWgt>73.){cout << "genWgt: " << genWgt << endl;}
-    if (1) cout << "gkole: genWgt: " << genWgt << endl;
+    if (0) cout << "gkole: genWgt: " << genWgt << endl;
     
     Float_t qcdScaleLo(1.0),qcdScaleHi(1.0),hdampLo(1.0),hdampHi(1.0);
     double isrRedHi=1;
     double fsrRedHi=1;
     double isrRedLo=1;
     double fsrRedLo=1;
-    double isrDefHi=1;
-    double fsrDefHi=1;
-    double isrDefLo=1;
-    double fsrDefLo=1;
+    // ===============
+    float isrDefHi=1;
+    float fsrDefHi=1;
+    float isrDefLo=1;
+    float fsrDefLo=1;
+    // above 4 is stored in NanoAODv9
     double isrConHi=1;
     double fsrConHi=1;
     double isrConLo=1;
     double fsrConLo=1;
+    if (!isData){
+      // isrRedHi = Jet_genpt[0];//ttbar_ps_w[0]; //gkole
+      //cout << "0: " << ev.ttbar_ps_w[0] << endl;
+      //cout << "1: " << ev.ttbar_ps_w[1] << endl;
+      //cout << "2: " << ev.ttbar_ps_w[2] << endl;
+      //cout << "3: " << ev.ttbar_ps_w[3] << endl;
+      isrDefHi = (ev.ttbar_ps_w[0]);
+      fsrDefHi = (ev.ttbar_ps_w[1]); 
+      isrDefLo = (ev.ttbar_ps_w[2]); 
+      fsrDefLo = (ev.ttbar_ps_w[3]);
+    }
+    
     if(readTTJetsGenWeights_ && ev.ttbar_nw>17){
       // Weight * [1/sum(weights for given systematic)] / [1/sum(weights nominal)]
       // will divide later by genWgt as appropriate
@@ -473,10 +492,10 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       fsrRedHi = (ev.ttbar_w[1083]); //gkole * (normWgt->GetBinContent(1084)/normWgt->GetBinContent(1));
       isrRedLo = (ev.ttbar_w[1084]); //gkole * (normWgt->GetBinContent(1085)/normWgt->GetBinContent(1));
       fsrRedLo = (ev.ttbar_w[1085]); //gkole * (normWgt->GetBinContent(1086)/normWgt->GetBinContent(1));
-      isrDefHi = (ev.ttbar_w[1086]); //gkole * (normWgt->GetBinContent(1087)/normWgt->GetBinContent(1));
-      fsrDefHi = (ev.ttbar_w[1087]); //gkole * (normWgt->GetBinContent(1088)/normWgt->GetBinContent(1));
-      isrDefLo = (ev.ttbar_w[1088]); //gkole * (normWgt->GetBinContent(1089)/normWgt->GetBinContent(1));
-      fsrDefLo = (ev.ttbar_w[1089]); //gkole * (normWgt->GetBinContent(1090)/normWgt->GetBinContent(1));
+      //isrDefHi = (ev.ttbar_w[1086]); //gkole * (normWgt->GetBinContent(1087)/normWgt->GetBinContent(1));
+      //fsrDefHi = (ev.ttbar_w[1087]); //gkole * (normWgt->GetBinContent(1088)/normWgt->GetBinContent(1));
+      //isrDefLo = (ev.ttbar_w[1088]); //gkole * (normWgt->GetBinContent(1089)/normWgt->GetBinContent(1));
+      //fsrDefLo = (ev.ttbar_w[1089]); //gkole * (normWgt->GetBinContent(1090)/normWgt->GetBinContent(1));
       isrConHi = (ev.ttbar_w[1090]); //gkole * (normWgt->GetBinContent(1091)/normWgt->GetBinContent(1));
       fsrConHi = (ev.ttbar_w[1091]); //gkole * (normWgt->GetBinContent(1092)/normWgt->GetBinContent(1));
       isrConLo = (ev.ttbar_w[1092]); //gkole * (normWgt->GetBinContent(1093)/normWgt->GetBinContent(1));
@@ -613,7 +632,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     
     if (0) cout << "gkole-fixme weight: " << evWgt << endl;
     if(!isData){
-      evWgt = 1.0*genWgt*puWgtNom/abs(genWgt);
+      //cout << "cc file sigma: " << normWgt << endl; gkole: rename normWgt to sigma
+      evWgt = 1.0*genWgt*puWgtNom*normWgt/(total_events*abs(genWgt));
     }
     if (0) cout << "gkole (temporary) set evWgt = 1.0: " << evWgt << endl;
 
@@ -914,10 +934,12 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     weight_[16]= evWgt*isrRedHi/genWgt;
     weight_[17]= evWgt*fsrRedLo/genWgt;
     weight_[18]= evWgt*fsrRedHi/genWgt;
-    weight_[19]= evWgt*isrDefLo/genWgt;
-    weight_[20]= evWgt*isrDefHi/genWgt;
-    weight_[21]= evWgt*fsrDefLo/genWgt;
-    weight_[22]= evWgt*fsrDefHi/genWgt;
+    
+    weight_[19]= evWgt*isrDefLo;
+    weight_[20]= evWgt*isrDefHi;
+    weight_[21]= evWgt*fsrDefLo;
+    weight_[22]= evWgt*fsrDefHi;
+    
     weight_[23]= evWgt*isrConLo/genWgt;
     weight_[24]= evWgt*isrConHi/genWgt;
     weight_[25]= evWgt*fsrConLo/genWgt;
