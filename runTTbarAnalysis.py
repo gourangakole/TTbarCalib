@@ -186,7 +186,7 @@ def main():
         print ("files_to_run_start: ", files_to_run_start)
         print ("files_to_run_stop: ", files_to_run_stop)
 
-        wgt = 1.0
+        wgt = sample[0]
         print ("No of files to run on: ", opt.nfiles)
         for nf in range(int(files_to_run_start), int(files_to_run_stop)) :
             if nf >= opt.nfiles: # Use to run only one file for tests (default is -1)
@@ -199,8 +199,7 @@ def main():
 
     print ("gkole on 11_Oct v0 type: %s and wgt: %d " % (type(wgt), wgt)) 
     print (50*">")
-    print ("set wgt from pikle file to 1.0")
-    wgt = 1.0
+    print ("set wgt from pikle file to cross-section: ", wgt)
 
     # Run the analysis jobs
     if opt.njobs == 0:
