@@ -1,3 +1,6 @@
+# >>>>> Last used
+# python3 condor_submission.py --folder 25Jul2024 --test
+# >>>>>
 import os
 import optparse
 import sys
@@ -5,9 +8,12 @@ import json
 
 usage = 'python condor_submission.py -d dataset_name -f destination_folder'
 parser = optparse.OptionParser(usage)
-parser.add_option('-e', '--era', dest='era', type=str, default = '2017', help='Please enter an era')
+parser.add_option('-e', '--era', dest='era', help='[Summer23BPix/Summer23]',default='all',type=str)
+# parser.add_option('-e', '--era', dest='era', help='[Summer23BPix/Summer23]',default='all',type=str, choices=["all","Summer23BPix","Summer23"])
 parser.add_option('-f', '--folder', dest='folder', type=str, default = 'v5', help='Please enter a destination folder')
 parser.add_option('-s', '--sample', dest='sample', type=str, default = 'TTto2L2Nu', help='Please put sample name')
+parser.add_option("--test",       action = "store_true")
+
 (opt, args) = parser.parse_args()
 uid = 0
 username = str(os.environ.get('USER'))
@@ -49,39 +55,24 @@ if not os.path.exists("condor/error"):
 if not os.path.exists("condor/log"):
     os.makedirs("condor/log")
 
-# main to run
 
-# this runs good
+# main to run
+Samples     = ['TTto2L2Nu','TTto2L2Nu_JES','TTto2L2Nu_JER','TTto2L2Nu_CP5Tune','TTto2L2Nu_CP5Tune','TTto2L2Nu_Hdamp','TTto2L2Nu_TopMass','MuonEG']
+Eras_List   = ['Summer23BPix', 'Summer23']
+
+# Eras      = []
+# for Era in Eras_List:
+#     if opt.era == 'all' or opt.era == Era:
+#       Eras.append(Era)
+
+for indera in Eras_List:
+    for indsam in Samples:
+        runner_writer(indsam,indera,opt.folder)
+        sub_writer(indsam)
+        if not opt.test:
+            print("Submitting Jobs on Condor")
+            os.system('condor_submit condor.sub')
+
+# example runs good
 # runner_writer("TTto2L2Nu","Summer23BPix","24Jul2024")
 # sub_writer("TTto2L2Nu")
-
-# this runs good
-# runner_writer("TTto2L2Nu_JES","Summer23BPix","24Jul2024")
-# sub_writer("TTto2L2Nu_JES")
-
-# this runs good
-# runner_writer("TTto2L2Nu_JER","Summer23BPix","24Jul2024")
-# sub_writer("TTto2L2Nu_JER")
-
-# this runs good
-# runner_writer("TTto2L2Nu_JER","Summer23BPix","24Jul2024")
-# sub_writer("TTto2L2Nu_JER")
-
-# this runs good
-# runner_writer("TTto2L2Nu_CP5Tune","Summer23BPix","24Jul2024")
-# sub_writer("TTto2L2Nu_CP5Tune")
-
-# this runs good
-# runner_writer("TTto2L2Nu_Hdamp","Summer23BPix","24Jul2024")
-# sub_writer("TTto2L2Nu_Hdamp")
-
-# this runs good
-# runner_writer("TTto2L2Nu_TopMass","Summer23BPix","24Jul2024")
-# sub_writer("TTto2L2Nu_TopMass")
-
-# this runs good
-runner_writer("MuonEG","Summer23BPix","24Jul2024")
-sub_writer("MuonEG")
-
-
-# os.system('condor_submit condor.sub')
