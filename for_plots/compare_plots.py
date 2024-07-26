@@ -131,6 +131,7 @@ if __name__ == "__main__":
     # flav = [b, c, other]
     # pass = [1-5] (WP's for a tagger)
     # slice = [0-5 (sometime 6)] : it represents the pt bins of the jet
+
     histos = ['b_pass1_slice0'] #,'b_pass1_slice1','b_pass1_slice2','b_pass1_slice3','b_pass1_slice4','b_pass1_slice5']
     for tag in taggers:
         for hist in histos:
