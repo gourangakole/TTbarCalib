@@ -23,9 +23,11 @@ SLICEVAR   = 'jetpt'
 #SYSTVARS   =  ['','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','puup','pudn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 # Updated:
 # gkole try
-#SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn','massup','massdn','tuneup','tunedn','hdampup','hdampdn']
-SYSTVARS   = ['','jesup','jesdn','pileupup','pileupdn','massup','massdn','tuneup','tunedn','hdampup','hdampdn']
+#SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn','massup','massdn','tuneup','tunedn','hdampup','hdampdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup'] #good
+#SYSTVARS   = ['','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 #SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
+
+SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn','isrDefup','fsrDefdn','fsrDefup']
 
 """
 Project trees from files to build the templates
@@ -88,6 +90,20 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
     print('files: ', files)
     chains={'mc':ROOT.TChain('kin'), 'mcjesup':ROOT.TChain('kin'), 'mcjesdn':ROOT.TChain('kin'), 'mcjerup':ROOT.TChain('kin'), 'mcjerdn':ROOT.TChain('kin'), 'data':ROOT.TChain('kin'), 'mcmassup':ROOT.TChain('kin'), 'mcmassdn':ROOT.TChain('kin'), 'mctuneup':ROOT.TChain('kin'), 'mctunedn':ROOT.TChain('kin'), 'mchdampup':ROOT.TChain('kin'), 'mchdampdn':ROOT.TChain('kin')}
 
+
+    total_events = 1
+    for f in files:
+        if ('TTto2L2Nu' in f and not 'jesup' in f and not 'jesdn' in f and not 'jerup' in f and not 'jerdn' in f and not 'massup' in f and not 'massdn' in f and not 'tuneup' in f and not 'tunedn' in f and not 'hdampup' in f and not 'hdampdn' in f):
+            nom_file_name = ROOT.TFile("%s"%(inDir+'/'+f))
+            # nom_file_name=inDir+'/'+f
+            print ("nom_file_name", nom_file_name)
+            h_total_events = nom_file_name.Get("events")
+            total_events = h_total_events.GetBinContent(1)
+            nom_file_name.Close()
+
+    print ("Total nominal events: ->", total_events)
+    fOut.cd()
+
     for f in files:
         if 'training' in f:
             continue
@@ -113,7 +129,7 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
         elif ('TTto2L2Nu' in f and 'hdampup' in f):
             key = 'mchdampup'
         elif ('TTto2L2Nu' in f and 'hdampdn' in f):
-            key = 'mchdampdn'    
+            key = 'mchdampdn'
         elif ('TTto2L2Nu' in f and not 'jesup' in f and not 'jesdn' in f and not 'jerup' in f and not 'jerdn' in f and not 'massup' in f and not 'massdn' in f and not 'tuneup' in f and not 'tunedn' in f and not 'hdampup' in f and not 'hdampdn' in f):
             key = 'mc'
         else:
@@ -191,10 +207,10 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                 ##if systVar=='isrRedup'    : wgtIdx, systIdx = 16, 0
                 ##if systVar=='fsrReddn'    : wgtIdx, systIdx = 17, 0
                 ##if systVar=='fsrRedup'    : wgtIdx, systIdx = 18, 0
-                #if systVar=='isrDefdn'    : wgtIdx, systIdx = 19, 0
-                #if systVar=='isrDefup'    : wgtIdx, systIdx = 20, 0
-                #if systVar=='fsrDefdn'    : wgtIdx, systIdx = 21, 0
-                #if systVar=='fsrDefup'    : wgtIdx, systIdx = 22, 0
+                if systVar=='isrDefdn'    : wgtIdx, systIdx = 19, 0
+                if systVar=='isrDefup'    : wgtIdx, systIdx = 20, 0
+                if systVar=='fsrDefdn'    : wgtIdx, systIdx = 21, 0
+                if systVar=='fsrDefup'    : wgtIdx, systIdx = 22, 0
                 #if systVar=='isrCondn'    : wgtIdx, systIdx = 23, 0
                 #if systVar=='isrConup'    : wgtIdx, systIdx = 24, 0
                 #if systVar=='fsrCondn'    : wgtIdx, systIdx = 25, 0
@@ -202,28 +218,31 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                 # print ("wgtIdx=  ", wgtIdx)
                 #Event weight
                 weight      = chains[key].weight[wgtIdx]
+                if i%100000 == 0:
+                    print ("Before key:-> ", key, " and weight: ->", weight)
+                if key == 'mc':
+                    weight = (96.9*weight)/total_events
 
                 # No need to proceed if event is not selected
                 if weight==0: continue
-                if 0:
-                    print ("gkole debug-> 1:")
-                    print ("weight", weight)
+                if i%100000 == 0:
+                    print ("Final key:-> ", key, " and weight: ->", weight)
                 # Variable to slice on
                 sliceVarVal  = getattr(chains[key],SLICEVAR)
                 # variable to be fit
-                
+
                 varVal[0]    = getattr(chains[key],var)      if var=='jpTagger'   else getattr(chains[key],var)[systIdx]
                 # print ("varVal[0]", varVal[0])
 
                 # print 'var: %s , tagger: %s' % (var,tagger)
 
-                # Tagger to apply  
+                # Tagger to apply
                 # print "tagger: ", tagger
                 # print "att of chains[key]", dir(chains[key])
                 taggerVal[0] = getattr(chains[key],tagger)
 
                 #determine categories
-                #print "taggerVal[0] ",taggerVal[0] 
+                #print "taggerVal[0] ",taggerVal[0]
                 # print 'sliceVarVal: ', sliceVarVal
                 for islice in range(0,len(SLICEBINS[SLICEVAR])):
                     passSlice[islice]=0
