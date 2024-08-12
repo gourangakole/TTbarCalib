@@ -27,7 +27,7 @@ SLICEVAR   = 'jetpt'
 #SYSTVARS   = ['','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 #SYSTVARS   =  ['','mistagup','mistagdn','jesup','jesdn','jerup','jerdn','trigdn','trigup','seldn','selup','qcdscaledn','qcdscaleup','pileupup','pileupdn','isrDefdn','isrDefup','fsrDefdn','fsrDefup']
 
-SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn','isrDefup','fsrDefdn','fsrDefup']
+SYSTVARS   = ['','jesup','jesdn','jerup','jerdn','pileupup','pileupdn','isrDefup','isrDefdn','fsrDefdn','fsrDefup']
 
 """
 Project trees from files to build the templates
@@ -91,15 +91,41 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
     chains={'mc':ROOT.TChain('kin'), 'mcjesup':ROOT.TChain('kin'), 'mcjesdn':ROOT.TChain('kin'), 'mcjerup':ROOT.TChain('kin'), 'mcjerdn':ROOT.TChain('kin'), 'data':ROOT.TChain('kin'), 'mcmassup':ROOT.TChain('kin'), 'mcmassdn':ROOT.TChain('kin'), 'mctuneup':ROOT.TChain('kin'), 'mctunedn':ROOT.TChain('kin'), 'mchdampup':ROOT.TChain('kin'), 'mchdampdn':ROOT.TChain('kin')}
 
 
-    total_events = 1
+    # total_events = 1
+    total_events = {}
     for f in files:
-        if ('TTto2L2Nu' in f and not 'jesup' in f and not 'jesdn' in f and not 'jerup' in f and not 'jerdn' in f and not 'massup' in f and not 'massdn' in f and not 'tuneup' in f and not 'tunedn' in f and not 'hdampup' in f and not 'hdampdn' in f):
+        if ('TTto2L2Nu' in f and 'jesup' in f):
             nom_file_name = ROOT.TFile("%s"%(inDir+'/'+f))
-            # nom_file_name=inDir+'/'+f
+            print ("file_name", nom_file_name)
+            h_total_events = nom_file_name.Get("events")
+            total_events['mcjesup'] = h_total_events.GetBinContent(1)
+            nom_file_name.Close()
+        elif ('TTto2L2Nu' in f and 'jesdn' in f):
+            nom_file_name = ROOT.TFile("%s"%(inDir+'/'+f))
+            print ("file_name", nom_file_name)
+            h_total_events = nom_file_name.Get("events")
+            total_events['mcjesdn'] = h_total_events.GetBinContent(1)
+            nom_file_name.Close()
+        elif ('TTto2L2Nu' in f and 'jerup' in f):
+            nom_file_name = ROOT.TFile("%s"%(inDir+'/'+f))
+            print ("file_name", nom_file_name)
+            h_total_events = nom_file_name.Get("events")
+            total_events['mcjerup'] = h_total_events.GetBinContent(1)
+            nom_file_name.Close()
+        elif ('TTto2L2Nu' in f and 'jerdn' in f):
+            nom_file_name = ROOT.TFile("%s"%(inDir+'/'+f))
+            print ("file_name", nom_file_name)
+            h_total_events = nom_file_name.Get("events")
+            total_events['mcjerdn'] = h_total_events.GetBinContent(1)
+            nom_file_name.Close()
+        elif ('TTto2L2Nu' in f and not 'jesup' in f and not 'jesdn' in f and not 'jerup' in f and not 'jerdn' in f and not 'massup' in f and not 'massdn' in f and not 'tuneup' in f and not 'tunedn' in f and not 'hdampup' in f and not 'hdampdn' in f):
+            nom_file_name = ROOT.TFile("%s"%(inDir+'/'+f))
             print ("nom_file_name", nom_file_name)
             h_total_events = nom_file_name.Get("events")
-            total_events = h_total_events.GetBinContent(1)
+            total_events['mc'] = h_total_events.GetBinContent(1)
             nom_file_name.Close()
+        else:
+            total_events['data'] = 1.0
 
     print ("Total nominal events: ->", total_events)
     fOut.cd()
@@ -218,14 +244,14 @@ def prepareTemplates(tagger,taggerDef,var,varRange,channelList,inDir,outDir,TT_s
                 # print ("wgtIdx=  ", wgtIdx)
                 #Event weight
                 weight      = chains[key].weight[wgtIdx]
-                if i%100000 == 0:
+                if i%1000000 == 0:
                     print ("Before key:-> ", key, " and weight: ->", weight)
-                if key == 'mc':
-                    weight = (96.9*weight)/total_events
+                if key == 'mc' or key == 'mcjesup' or key == 'mcjesdn' or key == 'mcjerup' or key == 'mcjerdn':
+                    weight = (96.9*weight)/total_events[key]
 
                 # No need to proceed if event is not selected
                 if weight==0: continue
-                if i%100000 == 0:
+                if i%1000000 == 0:
                     print ("Final key:-> ", key, " and weight: ->", weight)
                 # Variable to slice on
                 sliceVarVal  = getattr(chains[key],SLICEVAR)
