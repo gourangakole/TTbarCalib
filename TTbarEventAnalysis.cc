@@ -255,7 +255,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     inF->Close();
     return 0;
   }
-  
+
   //prepare reader
   std::vector<Float_t> tmvaVars( tmvaVarNames_.size(), 0. );
   if(weightsDir_!=""){
@@ -303,7 +303,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     Float_t Jet_SoftMuN[1000],Jet_SoftMu[1000],Jet_CombIVF_N[100];
    } evinit;
   MyEventInfoBranches_t ev;
-  
+
   Long64_t total_events;
   newTree->SetBranchAddress("total_events", &total_events);
 
@@ -371,7 +371,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
   cont.push_back(std::string(inFile).substr(previous, current - previous));
   std::string filenickname = cont.at(0);
   cout << "filenickname: " << filenickname << endl;
-  
+
   if(!isData){
     //SetPUWeightTarget("pileup_weights/pileupWgts2016.root",filenickname);
     //SetPUWeightTarget("pileup_weights/pileupWgts2018_preVFP.root",filenickname); % it was running upto 6/12/2023 (2:50 pm)
@@ -400,9 +400,9 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     newTree->GetEntry(i);
     cout << "total_events: " << total_events << endl;
   }
-  
+
   histos_["events"]->Fill(0., total_events);
-  
+
   int Event_i = 0;
 
   //nentries=100;
@@ -424,16 +424,16 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       if(puWgtHi <0)   {puWgtHi  = 0;}
     }
 
-    //cout << "# of nPU = " << ev.nPU << endl; 
+    //cout << "# of nPU = " << ev.nPU << endl;
     //cout << "puWgtGr_ = " << puWgtNom << endl;
     //cout << "puWgtUpGr_ = " << puWgtHi << endl;
     //cout << "puWgtDownGr_ = " << puWgtLo << endl;
-    
+
     histos_["puwgtnorm" ]->Fill(0.,1.0);
     histos_["puwgtnorm" ]->Fill(1.,puWgtNom);
     histos_["puwgtnorm" ]->Fill(2.,puWgtLo);
     histos_["puwgtnorm" ]->Fill(3.,puWgtHi);
-    
+
     //=== Generator weights ===
     // genWgt = nominal LHE event weight
     // Each entry in ttbar_w corresponds to a LHE weight variation
@@ -443,7 +443,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     Double_t genWgt = ev.ttbar_w[0]==0.0 ? 1.0 : ev.ttbar_w[0];
     //if(genWgt>73.){cout << "genWgt: " << genWgt << endl;}
     if (0) cout << "gkole: genWgt: " << genWgt << endl;
-    
+
     Float_t qcdScaleLo(1.0),qcdScaleHi(1.0),hdampLo(1.0),hdampHi(1.0);
     double isrRedHi=1;
     double fsrRedHi=1;
@@ -466,11 +466,11 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       //cout << "2: " << ev.ttbar_ps_w[2] << endl;
       //cout << "3: " << ev.ttbar_ps_w[3] << endl;
       isrDefHi = (ev.ttbar_ps_w[0]);
-      fsrDefHi = (ev.ttbar_ps_w[1]); 
-      isrDefLo = (ev.ttbar_ps_w[2]); 
+      fsrDefHi = (ev.ttbar_ps_w[1]);
+      isrDefLo = (ev.ttbar_ps_w[2]);
       fsrDefLo = (ev.ttbar_ps_w[3]);
     }
-    
+
     if(readTTJetsGenWeights_ && ev.ttbar_nw>17){
       // Weight * [1/sum(weights for given systematic)] / [1/sum(weights nominal)]
       // will divide later by genWgt as appropriate
@@ -628,24 +628,24 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
         string outfname( outF_->GetName() );
       }
     }
-    
-    
+
+
     if (0) cout << "gkole-fixme weight: " << evWgt << endl;
     if(!isData){
       //cout << "cc file sigma: " << normWgt << endl; gkole: rename normWgt to sigma
-      evWgt = 1.0*genWgt*puWgtNom*normWgt/(total_events*abs(genWgt));
+      evWgt = 1.0*genWgt*puWgtNom/(abs(genWgt));
     }
-    if (0) cout << "gkole (temporary) set evWgt = 1.0: " << evWgt << endl;
+    if (0) cout << "evWgt = " << evWgt << endl;
 
     histos_[ch+"_evsel"]->Fill("pre-sel",presel_evwgt);
     histos_[ch+"_npvinc"]->Fill(ev.npvs-1,presel_evwgt);
     int npvs_int = static_cast<int>(ev.npvs);
     //cout << "ev.npvs: " << ev.npvs << endl; // this is showing zero
     if (0) cout << "npvs_int: " << npvs_int << endl;
-    if (0) cout << "ev.nPU: " << ev.nPU << endl; 
+    if (0) cout << "ev.nPU: " << ev.nPU << endl;
     npv_=static_cast<int>(ev.npvs);
-    
-    
+
+
 
     //#########################
     // JET/MET SELECTION
@@ -671,7 +671,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
 
       // tight jet id
       if (not ev.Jet_tightID[ij]) continue;
-      
+
       // Cross clean jets wrt to leptons
       Float_t minDRlj(9999.);
       for(size_t il=0; il<2; il++) minDRlj = TMath::Min( (Float_t)minDRlj, (Float_t)lp4[il].DeltaR(jp4) );
@@ -895,8 +895,8 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
       for(size_t ij=0; ij<2; ij++){
         size_t jetIdx=leadingkindiscIdx[ij];
         histos_[ch+"_DeepFlavourBDisc_leadkin"]->Fill(ev.Jet_DeepFlavourBDisc[jetIdx],evWgt);
-	histos_[ch+"_PNetBDisc_leadkin"]->Fill(ev.Jet_PNetBDisc[jetIdx],evWgt);
-	histos_[ch+"_ParTBDisc_leadkin"]->Fill(ev.Jet_ParTBDisc[jetIdx],evWgt);
+	      histos_[ch+"_PNetBDisc_leadkin"]->Fill(ev.Jet_PNetBDisc[jetIdx],evWgt);
+	      histos_[ch+"_ParTBDisc_leadkin"]->Fill(ev.Jet_ParTBDisc[jetIdx],evWgt);
         histos_[ch+"_DeepFlavourCvsLDisc_leadkin"]->Fill(ev.Jet_DeepFlavourCvsLDisc[jetIdx],evWgt);
         histos_[ch+"_DeepFlavourCvsBDisc_leadkin"]->Fill(ev.Jet_DeepFlavourCvsBDisc[jetIdx],evWgt);
         //histos_[ch+"_DeepFlavourB_leadkin"]->Fill(ev.Jet_DeepFlavourB[jetIdx],evWgt);
@@ -910,7 +910,7 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     eventInfo_[1]=ev.Evt;
     eventInfo_[2]=ev.LumiBlock;
 
-    
+
     jetmult_=selJetsP4.size();
     ttbar_chan_=ev.ttbar_chan;
 
@@ -919,7 +919,10 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     {
       Float_t selWeight(jetCount[iSystVar]>=2 ? 1.0 : 0.0);
       weight_[iSystVar]=evWgt*selWeight;
+      // cout << "inside systematic uncertainties: " << "iSystVar: " << iSystVar << "  and value: "<<selWeight << endl;
+      // cout << "regular evWgt: " << evWgt << endl;
     } // gkole (try to understand weight)
+    
     weight_[5] = puWgtNom>0 ? evWgt*puWgtLo/puWgtNom : evWgt;
     weight_[6] = puWgtNom>0 ? evWgt*puWgtHi/puWgtNom : evWgt;
     weight_[7] = evWgt*trigWgtLo/trigWgtNom;
@@ -934,12 +937,12 @@ Int_t TTbarEventAnalysis::processFile(TString inFile, Float_t normWgt, Bool_t is
     weight_[16]= evWgt*isrRedHi/genWgt;
     weight_[17]= evWgt*fsrRedLo/genWgt;
     weight_[18]= evWgt*fsrRedHi/genWgt;
-    
+
     weight_[19]= evWgt*isrDefLo;
     weight_[20]= evWgt*isrDefHi;
     weight_[21]= evWgt*fsrDefLo;
     weight_[22]= evWgt*fsrDefHi;
-    
+
     weight_[23]= evWgt*isrConLo/genWgt;
     weight_[24]= evWgt*isrConHi/genWgt;
     weight_[25]= evWgt*fsrConLo/genWgt;
