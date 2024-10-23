@@ -1,15 +1,16 @@
 # TTBarCalib Instructions
-## Joshuha Thomas-Wilsker (IHEP CAS) & Chris Palmer (Princeton)
+## Gouranga Kole (NTU)
 
-The following instructions will explain practically how to perform the KIN method analysis. The instructions should provide you with all the information needed to go from collecting a list of samples required for this analysis and running the BTagAnalyzer to extracting the KIN method scale factors and uncertainties and creating the .csv files that are used in the BTV b-tagging scale factors combination. Firstly we need to create a CMSSW working directory and env. Check BTagAnalyzer page for which CMSSW to use for new campaigns and follow the setup instructions in the relevant github README:
+The following instructions will explain practically how to perform the KIN method analysis. The instructions should provide you with all the information needed to go from collecting a list of samples required for this analysis and running the BTVNanoCommissioning to extracting the KIN method scale factors and uncertainties and creating the .csv files that are used in the different CMS analysis. Firstly we need to create a CMSSW working directory and env. Check which CMSSW to use for new campaigns and follow the setup instructions in the relevant github README:
+
 ```
-https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagAnalyzer
+https://github.com/cms-btv-pog/BTVNanoCommissioning
 ```
-We first describe how to run the BTagAnalyzer creating ntuples for a TTbar analysis. It's not in the scope of this README to give detailed information on the BTagAnalyzer but one can find the relevant information following the twiki above or reading through the relevant code in that Git repository. These are what are then used as input to the TTbarCalib code used to create the flat ntuples. We then describe the two separate procedures that perform Kinematic fit method and the 2TagCount method. However, firstly you will need to know where to find the centrally produced datasets for the campaign on which you are about to embark.
+We first run the ``BTVNanoCommissioning`` to create ntuples for a TTbar analysis. It's not in the scope of this README to give detailed information on the ``BTVNanoCommissioning`` but one can find the relevant information following the github above or reading through the relevant code in that Git repository. These are what are then used as input to the TTbarCalib code used to create the flat ntuples. We then describe the two separate procedures that perform Kinematic fit method. However, firstly you will need to know where to find the centrally produced datasets for the campaign on which you are about to embark.
 ## Using DAS
 CMS DAS service will help you to find the MC and data files for your scale factor campaign. Example command for Fall17 Production:
 ```
-das_client.py --query="dataset dataset=/*/RunIIFall17MiniAOD-94X_mc2017_realistic_v*/MINIAODSIM status=* " --limit=300
+das_client.py --query="dataset dataset=/*/RunIII*/NANOAODSIM status=* " --limit=300
 ```
 
 ### Measuring X-Sections of Samples on McM / DAS client
@@ -17,19 +18,7 @@ See here for more detail:
 ```
 https://twiki.cern.ch/twiki/bin/viewauth/CMS/HowToGenXSecAnalyzer#Automated_scripts_to_compute_the
 ```
-Find the MINIAOD dataset name on DAS client if you are using the command that requires the dataset.
 
-Find your sample on McM. Find the MINIAOD prepID of the chain if you are using the command that requires the prepID.
-e.g.
-```
-https://cms-pdmv.cern.ch/mcm/requests?prepid=B2G-RunIIFall17MiniAOD-00045&page=0&shown=127
-```
-Two possible commands.
-
-For dataset input:
-```
-./calculateXSectionAndFilterEfficiency.sh -f datasets.txt -c Moriond17 -d MINIAODSIM -n 1000000
-```
 For McM prepID input:
 ```
 ./calculateXSectionAndFilterEfficiency.sh -f datasets_mcm.txt  -m -n 1000000
@@ -55,24 +44,17 @@ https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_test/B2G-RunIIFall17wmL
 ```
 Click on the circle with the tick on it to get the test command. Copy and paste into a shell script and this should run. In the output look for the string "GenXsecAnalyzer".
 
-## Creation of Ntuples Using the BTagAnalyzer
+## Creation of Ntuples Using the BTVNanoCommissioning
 ###Installation
-See base installation here https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagAnalyzer
-# ##Producing the trees locally
-Change into 'RecoBTag/PerformanceMeasurements/test/'. Then one can run:
+
+
+MC and data ttbar_BTA are here below( Produced by Ming-Yan and Uttiya)
 ```
-cmsRun runBTagAnalyzer_cfg.py defaults=<defaults_set_name> runOnData=<True/False> miniAOD=<True/False> useTTbarFilter=<True/False> maxEvents=<# of events (-1 for all)> groups=<Variable set to save>
+/eos/cms/store/group/phys_btag/milee/BTA_ttbar/Summer22/
+/eos/cms/store/group/phys_btag/milee/BTA_ttbar/Summer22EE/
+/eos/cms/store/group/phys_btag/milee/BTA_ttbar/Summer23/
+/eos/cms/store/group/phys_btag/milee/BTA_ttbar/Summer23BPix/
 ```
-e.g.
-```
-cmsRun runBTagAnalyzer_cfg.py defaults=2016_SF runOnData=False miniAOD=True useTTbarFilter=True maxEvents=100 groups='TTbar,JetInfo,PV,EventInfo,Josh'
-```
-- Will run locally the analyser for testing purposes.
-- Note the way to initialise all the relevant defaults using defaults=XXXX
-- The defaults can be found in the folder: '/src/RecoBTag/PerformanceMeasurements/python/defaults/'.
-- No variables are saved by default. If you want to save variables to the output tree you can include them via the option groups='testfat' (the variable groups are defined in PerformanceMeasurments/python/varGroups.py)
-- Update 'TTbarSelectionProducer_cfi.py’ and related cc and h files to ensure the correct triggers, ID/isolation, filters etc are used ( https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiTopRefEventSel, https://twiki.cern.ch/twiki/bin/view/CMS/TopTrigger)
-- Check which source.Filename the code will run on. runBTagAnalyzer_cfg. Depending on your analysis you may want to change this to a larger sample to perform tests.
 
 ###Downloading files to run on locally
 If the files you wish to run on localy do not exits in the eos space, one can download them using xrootd tools. First, choose the file you want from the disk resident CMS data on a grid site. One can search for a dataset on DAS and find the '/stroe' tree path in the 'site' information. Now check the file is accessible:
@@ -83,115 +65,21 @@ Now try to download it locally:
 ```
 xrdcp -d 1 -f root://xrootd-cms.infn.it//<filepath> <local_file_path>
 ```
-To run on this now, replace the "process.source.fileNames" entry with "file:<local_path>".
-
-### Running BTagAnalyzer on the grid
-Ensure you have a working CMSSW environment, you voms proxy set up and crab setup:
-```
-cd CMSSW_XXXXX/src/
-cmsenv
-voms-proxy-init --voms cms
-source /cvmfs/cms.cern.ch/crab3/crab.sh
-```
-- Change into the directory from which you will submit the jobs e.g. ‘CMSSW/src/RecoBTag/PerformanceMeasurements/test/ttbar/‘
-- Running the following commands will submit the samples described in the data/<samples list>.json to run on the grid:
-```
- python submitToGrid.py -j data/<samples list>.json -c ${CMSSW_BASE}/src/RecoBTag/PerformanceMeasurements/test/runBTagAnalyzer_cfg.py -l data/<relevant lumi json>.txt -s
-```
-
-- LumiMask option -l needs to be checked:
-2016 UL post-vfp: https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2016postVFPAnalysis
-2016 UL pre-vfp: https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2016preVFPAnalysis
-- Both these use the same json, but 2017/2018 will be different.
-- Partial submission can be made using the option:  -o csv_list
-- In the samples list json, you should consider to leave the names of the MC and data samples as they were originally, with the prefix MC13TeV_ and Data13TeV_, to assure consistency toward all the steps of the measurement.
-- To process more quickly the MC jobs can edit number of units per job.
-- Need to update the good runs list in submitToGrid.py.
-- Adjust —lfn as needed. 
-- Githash variable creates the folder where you save the crab output. You can change it into a more friendly name.
-
-### Copying trees
-```
- source EosCpDir.sh //For MC samples source
-EosCpDirMuEG.sh //For data samples 
-```
-UPDATE: For this you can use python script '/src/RecoBTag/PerformanceMeasurements/test/ttbar/scripts/xrdcp_script.py'
-        This ensures the TTBar samples are split into training and testing at this stage so the pickle files for the
-        luminosity scaling are calculated for the number of events in the split samples.
-
-- This script substitute Pedros' checkProductionIntegrity.py script. It is easier (to me) and one can run as soon as ntuple production starts to end, to move from crab output directories to a more simple directory structure which can be which is easily parsed by the local analysis. Once production is finished you can delete original crab directories in EOS.
-- Make sure that the number of files in the new simplified path is equal to the one produced with crab. Then you have the option to delete the crab folder note that, e.g. for data, the same datasetname may have from series: MuonEG may have datasample B,C.
-- In this case create dedicated script to do the copy (see EosCpDirMuEG.sh). It is always a good practice to check that the files have been properly copied (especially for data).
-- Use the script CheckNt.sh. If some files are missing, or new files are arriving from crab, you can use the script MissingFiles_EosCpDir.sh.
-- Ensure that the size of the directories are the same for old and copied directory.
 
 ## Pileup estimation
-```
-cd pileup_weights
-./runPU.sh
-```
-runPU.sh simply runs the runPileupEstimation.py script for the file list. The file list can be compiled easily using either:
-```
-ls /eos/cms/store/group/phys_btag/Commissioning/TTbar/TTbar_XXXX_StructuredDir/ | xargs
-```
-Or changing into the directory of choice and simply doing for example:
-```
-printf "%s " *_HIPM/
-```
 
-You also need to check the correct json is being used.
+This is done my Ming-Yan but I get weight file and used it.
 
-You will need to go inside the 'runPileupEstimation.py' script and ensure the correct files are being used. Firstly, check the file being used for the data pileup histograms are correct by searching for:
-```
-oFileName
-```
-The correct files for given datasets can be found here: https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData#Recommended_cross_section
-
-Pileup reweighting for UL samples:
-https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/3689/1.html
-https://hypernews.cern.ch/HyperNews/CMS/get/luminosity/1041/1.html
-
-The script should create a new pileup weights files using the runPileupEstimation.py script here. Will add the weights histogram for each of the simulated samples.
-
-The MC histograms used to generate MC pileup distribution are from the nPUTrue distribution of pre-selection events. These are filled for each file by the BTagAnalyzer.
-
-Pileup weights correct for the differences between the modelled pileup scenario in simulation and what is measured in data. Number of primary vertices is the observable used to determine the weights. To create the pileup distribution in data runPileupEstimation.py uses the pileupCalc.py tool. The pileup distribution in MC is hard coded. Script uses mixing package to directly access MC pileup distributions which will need updating for later runs (line 6). They can be found at:
-```
-CMSSW_XXXXX/SimGeneral/MixingModule/python/
-```
-
-To calculate the final weight for an event:
-      - Normalise both distributions.
-      - Divide data by MC.
-      - Eventually one determines the y-value of the resulting distribution @ the x-value corresponding to the true number of interactions of the MC event.
-      - In ntuples:
-                    nPUTrue c.f. PileupSummaryInfo object ipu->getTrueNumInteractions() function.
-                    nPU c.f. PileupSummaryInfo object ipu->getPU_NumInteractions() function.
-      - The number of pileup in any given event must be an integer.
-      - nPUTrue is not an integer and is drawn from the full PU distribution input that is a poisson mean of the distribution one gets nPU from.
-      - nPU is the actual number of interactions in the event.
-
-Script to produce a ROOT file under data with the pileup distributions and the weights for a conservative +/-10% variation of the central minBias xsec value assumed.
-
-Centrally produced pileup distributions used in MC can also be found here. Can be used to cross-check our histograms:
-https://github.com/CMS-LUMI-POG/PileupTools/tree/master/Results2016UL
-
-One can manually download these using wget.
-
-To generate files for run dependant scale factors, one needs to create seperated Cert<XXX>.json files from Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON_RunBCDEF.txt file. Used DAS query to find the run numbers for the individual runs e.g.
-```
-das_client.py --query="run dataset=/MuonEG/Run2017C-17Nov2017-v1/MINIAOD"
-```
-Then just removed all other runs that weren't in the list returned by the das query.
 
 ## Creation of flat ntuples using TTbarCalib package
 The creation of flat ntuples using the BTagAnalyzer outputs is done using the the runTTbarAnalysis.py script in the TTBarCalib package:
 ```
-python runTTbarAnalysis.py -i /store/group/phys_btag/Commissioning/TTbar/XXX_StructuredDir/ -o XXX/ -j data/XXX.json -n 50
+python runTTbarAnalysis.py -i /store/group/phys_btag/milee/BTA_ttbar/Summer23/ -o XXX/ -j data/XXX.json -n 50
 ```
-IMPORTANT: The ttbar sample should have been split to ensure the classifier can be evaluated on a statistically independent sample to which it was trained on. This was done in the '/src/RecoBTag/PerformanceMeasurements/test/ttbar/scripts/xrdcp_script.py'. When you split your ttbar samples up for training/testing BDT purposes, one must delete and remake the pickle files. Currently splits sample 50/50, could potentially use less for training.
+IMPORTANT: ttbar samples is splitted to ensure the classifier can be evaluated on a statistically independent sample.
+Currently splits sample 25/75
 
-### Introduction to TTbarCalib package
+### Introduction to TTbarCalib package (update needed)
 - Runs local analysis to produce the root files used in the efficiency measurement. MC will be weighted by cross section here.
 - Option -n indicates how many threads should be used.
 - 'condor_run_dir' contains scripts to launch jobs on condor (singular or multi-threaded)
@@ -204,28 +92,11 @@ IMPORTANT: The ttbar sample should have been split to ensure the classifier can 
 - Make sure that the number of root files equals the num of ntuple files. This is needed because sometimes the ntuples->rootfiles step fails.
 - If you update the ttrees at any point, to ensure the xsec or lumi you have is correct, it's advised to remove by hand the pickle file, otherwise the necessary normalisations will not be recalculated accordingly and will be wrong.:
 ```
-rm nohup.out
-rm data/.xsecweights.pck 
 ```
 - Check corrections are up-to-date in TTbarEventAnalysis code
 
-### Cross-section & Generator Weights
-The produceNormalizationCache() function inside the StoreTools.py script loops over a list of samples and caches a file containing values used to normalize MC. The creation of the pickle file can take a while.
 
-Every file will have been filled with a 'wgtcounter' histogram when running the BTagAnalyzer. Each bin in this histogram contains the sum of the generator weights (from a GenEventInfoProduct instance) for a single weight variation. The first bin (bin 1) after the underflow bin (bin 0) is filled with nominal generator weight value and the following bins are filled with systematic variations e.g. muR, muF, PDF.
-
-These histograms are used to calculate the sum-of-weights normalisation. This deals with the fact that the number of weighted events used to generate the MC sample is not relevant when comparing its size with respect to other samples for other physics processes or data. This number just dictates the statistics of the sample - the amount of fluctuation in each bin, caused by the randomness of simulating the sample using MC techniques. We therefore try to normalise this out of the sample by dividing each event by the sum-of-weights in the sample (before any selection is applied). Each event is given a weight calculated as the to the generator weight divided by the sum of the generator weights in the sample. This means the integral of the sample, ignoring any other weights, should be unity and renders it independent from the statistics of the sample.
-
-The cross-section for each process is dealt with in the plotting macros later so that we don't have to re-run all samples if we want to simply update to a new theory prediction for the process cross-section.
-
-We also apply corrections that account for the difference in the acceptance and efficiency of the reconstructed objects in data and simulation which is described in the following sections.
-
-The cross-sections on the XSDB were used. May want to check TTbar XS. In DB the XS is much lower. This is due to it being automatically computed using the Event generator to NLO.
-
-Latest ttbar NNLO+NNLL XS should be used: https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO#Top_quark_pair_cross_sections_at
-This can be multiplied by the branching fractions of the W boson taken from the PDG: http://pdg.lbl.gov/2017/tables/rpp2017-sum-gauge-higgs-bosons.pdf
-
-### Triggers and scale factors
+### Triggers and scale factors (NOT used but old (UL) information)
 First thing to ensure is that inside the runTTbarAnalysis.py script, all the triggers in the TTbarSelectionProducer_cfi.py config are present and applied in the same way in MC as in data. In data, these have already been applied in the BTagAnalyzer step.
 
 Inside TTbarEventAnalysis.cc one can find where the trigger requirement 'hasTrigger' is applied. The code will loop over the triggers in 'triggerBits' which is a list of pairs containing the index of the trigger in the aforementioned config and the channel it is relevant for (ttbar_chan = assigned channel from ID of selected leptons). This list is created in runTTbarAnalysis.py and affects the trigger selection so its very important to check the indices and channels assigned match the config.
@@ -266,7 +137,7 @@ Use the  python script to print out values of the pt and eta bins along with the
   python calculate_EG_SFs.py > EG_mediumWP_eff_SFs.txt
   ```
 
-### Jet resolution and energy corrections
+### Jet resolution and energy corrections (new method is applied as new ntuples created by BTVNanoCommissioning)
 
 Instances of the jet corrections and uncertainties can be found in TTbarEventAnalysis.h
 
@@ -314,7 +185,7 @@ python twoTag.py /tmp/MYUSERNAME/Moriond19_Run2018/plots/plotter.root
 ```
 ### Control plots
 ```
-python plotter.py -i <output directory> -j data/<samples 4 plotter>.json
+Update this part
 ```
  - Makes control plots and stores all in a ROOT file. Different options may be passed to filter plots, and show differently the plots.
 - When merging rootples, be careful because if different sample names are called similarly (eg tW and atW)  you can risk doing double-merging.
@@ -397,22 +268,6 @@ cout << "~~~{\\small \\it total } & ${\\small" << toterr_up << "/ " << toterr_do
 ```
 - Uncomment/write your own version of this line to get the print out you require.
 - Now simply add this to the sfb_report.tex document inside the appropriate table (paying attention to the working points / pt bins etc.).
-
-### Prepare Results for Distribution (nominal and weight systematics)
-- Performed by prepare_csv.py
-- This script writes the results of the SF measurement for all three WP, all jet pT bins into a .csv file.
-- The results for the nominal as well as statistical uncertainty and all *weight* sytematics are written.
-- The 'total' systematic is not written as this depends also on having the ttbar systematics evaluated using alternative samples. This is handled by the create_SommaQuad_script.py and resulting SommaQuadratura_script.cc
-
-### ttbar systematics (alternative sample systematics)
-- The script create_SommaQuad_script.py can be used to create a SommaQuadratura_script.cc
-- The resulting .cc can be run via root to create the SommaQuadratura_script.cc.
-```
-$> root -l SommaQuadratura_script.cc
-```
-- The output SommaQuadratura_script.cc script using template SommaQuadratura_template.txt.
-- When run a new SommaQuadratura_script.cc will be created which, when run, will append the results of the various ttbar systematics evaluated using alternative samples and the sum in quadrature of *all* systematics to the contents of the .csv file created by 'prepare_csv.py'
-- Be careful to ensure the output file defined in prepare_csv.py and the create_SommeQuad_script.py are the same. For different taggers, one should just change the tagger name and this will be used throughout the script for directories and filenames.
 
 ## Additional Information Systematics
 ### ttbar weight systematics
